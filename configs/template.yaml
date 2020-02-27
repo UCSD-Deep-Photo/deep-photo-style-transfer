@@ -1,2 +1,53 @@
-model:
-    name: 'SomeGAN'
+# model hyperparams
+name: 'SomeGAN'
+gpu_ids: 
+    - 1
+isTrain: True    
+checkpoints_dir: 'checkpoints/'
+lr: 0.001
+continue_train: False
+load_iter: 0
+epoch_count: 0
+epoch: 100
+
+# freq
+display_freq: 5
+save_epoch_freq: 5
+update_html_freq: 5
+save_latest_freq: 1
+print_freq: 1
+verbose: True
+
+# scheduler
+lr_policy: 'linear'
+n_epochs: 50
+n_epochs_decay: 50
+lr_decay_iters: 50
+
+# dataset 
+dataroot: 'path/to/data'
+load_size: 512
+crop_size: 256
+preprocess: 'resize_and_crop'
+no_flip: True
+
+# dataloader
+dataset_mode: 'SomeDataset'
+batch_size: 5
+serial_batches: False
+num_threads: 4
+
+# visualizer
+display_id: 1
+aspect_ratio: 1
+no_html: False
+display_winsize: 10
+display_server: 'localhost'
+display_port: 8532
+display_env: 'results'
+display_ncols: 5
+
+# test
+results_dir: 'results/'
+phase: 'lastphase'
+num_test: 100

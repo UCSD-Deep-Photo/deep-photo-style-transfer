@@ -13,31 +13,28 @@ from . import networks
 class BaseModel(ABC):
     """This class is an abstract base class (ABC) for models.
     To create a subclass, you need to implement the following five functions:
-        -- <__init__>:                      initialize the class; first call BaseModel.__init__(self, opt).
+        -- <__init__>:                      initialize the class; first call BaseModel.__init__(self, config).
         -- <set_input>:                     unpack data from dataset and apply preprocessing.
         -- <forward>:                       produce intermediate results.
         -- <optimize_parameters>:           calculate losses, gradients, and update network weights.
         -- <modify_commandline_options>:    (optionally) add model-specific options and set default options.
     """
 
-    def __init__(self, opt):
+    def __init__(self, config):
         """Initialize the BaseModel class.
-        Parameters:
-            opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
-        When creating your custom class, you need to implement your own initialization.
-        In this fucntion, you should first call <BaseModel.__init__(self, opt)>
+        In this fucntion, you should first call <BaseModel.__init__(self, config)>
         Then, you need to define four lists:
             -- self.loss_names (str list):          specify the training losses that you want to plot and save.
             -- self.model_names (str list):         specify the images that you want to display and save.
             -- self.visual_names (str list):        define networks used in our training.
             -- self.optimizers (optimizer list):    define and initialize optimizers. You can define one optimizer for each network. If two networks are updated at the same time, you can use itertools.chain to group them. See cycle_gan_model.py for an example.
         """
-        self.opt = opt
-        self.gpu_ids = opt.gpu_ids
-        self.isTrain = opt.isTrain
+        self.config = config
+        self.gpu_ids = config['gpu_ids']
+        self.isTrain = config['isTrain']
         self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
-        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)  # save all the checkpoints to save_dir
-        if opt.preprocess != 'scale_width':  # with [scale_width], input images might have different sizes, which hurts the performance of cudnn.benchmark.
+        self.save_dir = os.path.join(config['checkpoints_dir'], config['name'])  # save all the checkpoints to save_dir
+        if config['preprocess'] != 'scale_width':  # with [scale_width], input images might have different sizes, which hurts the performance of cudnn.benchmark.
             torch.backends.cudnn.benchmark = True
         self.loss_names = []
         self.model_names = []
@@ -47,15 +44,15 @@ class BaseModel(ABC):
         self.metric = 0  # used for learning rate policy 'plateau'
 
     @staticmethod
-    def modify_commandline_options(parser, is_train):
+    def modify_config(config, is_train):
         """Add new model-specific options, and rewrite default values for existing options.
         Parameters:
-            parser          -- original option parser
+            config          -- original option parser
             is_train (bool) -- whether training phase or test phase. You can use this flag to add training-specific or test-specific options.
         Returns:
             the modified parser.
         """
-        return parser
+        return config
 
     @abstractmethod
     def set_input(self, input):
@@ -75,17 +72,17 @@ class BaseModel(ABC):
         """Calculate losses, gradients, and update network weights; called in every training iteration"""
         pass
 
-    def setup(self, opt):
+    def setup(self, config):
         """Load and print networks; create schedulers
         Parameters:
-            opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
+            config (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         if self.isTrain:
-            self.schedulers = [networks.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
-        if not self.isTrain or opt.continue_train:
-            load_suffix = 'iter_%d' % opt.load_iter if opt.load_iter > 0 else opt.epoch
+            self.schedulers = [networks.get_scheduler(optimizer, config) for optimizer in self.optimizers]
+        if not self.isTrain or config['continue_train']:
+            load_suffix = 'iter_%d' % config['load_iter'] if config['load_iter'] > 0 else config['epoch']
             self.load_networks(load_suffix)
-        self.print_networks(opt.verbose)
+        self.print_networks(config['verbose'])
 
     def eval(self):
         """Make models eval mode during test time"""
@@ -114,7 +111,7 @@ class BaseModel(ABC):
     def update_learning_rate(self):
         """Update learning rates for all the networks; called at the end of every epoch"""
         for scheduler in self.schedulers:
-            if self.opt.lr_policy == 'plateau':
+            if self.config['lr_policy'] == 'plateau':
                 scheduler.step(self.metric)
             else:
                 scheduler.step()
