@@ -17,19 +17,15 @@ from abc import ABC, abstractmethod
 class BaseDataset(data.Dataset, ABC):
     """This class is an abstract base class (ABC) for datasets.
     To create a subclass, you need to implement the following four functions:
-    -- <__init__>:                      initialize the class, first call BaseDataset.__init__(self, opt).
+    -- <__init__>:                      initialize the class, first call BaseDataset.__init__(self, config).
     -- <__len__>:                       return the size of dataset.
     -- <__getitem__>:                   get a data point.
     -- <modify_commandline_options>:    (optionally) add dataset-specific options and set default options.
     """
 
-    def __init__(self, opt):
-        """Initialize the class; save the options in the class
-        Parameters:
-            opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
-        """
-        self.opt = opt
-        self.root = opt.dataroot
+    def __init__(self, config):
+        self.config = config
+        self.root = config['dataroot']
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -58,44 +54,44 @@ class BaseDataset(data.Dataset, ABC):
         pass
 
 
-def get_params(opt, size):
+def get_params(config, size):
     w, h = size
     new_h = h
     new_w = w
-    if opt.preprocess == 'resize_and_crop':
-        new_h = new_w = opt.load_size
-    elif opt.preprocess == 'scale_width_and_crop':
-        new_w = opt.load_size
-        new_h = opt.load_size * h // w
+    if config['preprocess'] == 'resize_and_crop':
+        new_h = new_w = config['load_size']
+    elif config['preprocess'] == 'scale_width_and_crop':
+        new_w = config['load_size']
+        new_h = config['load_size'] * h // w
 
-    x = random.randint(0, np.maximum(0, new_w - opt.crop_size))
-    y = random.randint(0, np.maximum(0, new_h - opt.crop_size))
+    x = random.randint(0, np.maximum(0, new_w - config['crop_size']))
+    y = random.randint(0, np.maximum(0, new_h - config['crop_size']))
 
     flip = random.random() > 0.5
 
     return {'crop_pos': (x, y), 'flip': flip}
 
 
-def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, convert=True):
+def get_transform(config, params=None, grayscale=False, method=Image.BICUBIC, convert=True):
     transform_list = []
     if grayscale:
         transform_list.append(transforms.Grayscale(1))
-    if 'resize' in opt.preprocess:
-        osize = [opt.load_size, opt.load_size]
+    if 'resize' in config['preprocess']:
+        osize = [config['load_size'], config['load_size']]
         transform_list.append(transforms.Resize(osize, method))
-    elif 'scale_width' in opt.preprocess:
-        transform_list.append(transforms.Lambda(lambda img: __scale_width(img, opt.load_size, opt.crop_size, method)))
+    elif 'scale_width' in config['preprocess']:
+        transform_list.append(transforms.Lambda(lambda img: __scale_width(img, config['load_size'], config['crop_size'], method)))
 
-    if 'crop' in opt.preprocess:
+    if 'crop' in config['preprocess']:
         if params is None:
-            transform_list.append(transforms.RandomCrop(opt.crop_size))
+            transform_list.append(transforms.RandomCrop(config['crop_size']))
         else:
-            transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], opt.crop_size)))
+            transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], config['crop_size'])))
 
-    if opt.preprocess == 'none':
+    if config['preprocess'] == 'none':
         transform_list.append(transforms.Lambda(lambda img: __make_power_2(img, base=4, method=method)))
 
-    if not opt.no_flip:
+    if not config['no_flip']:
         if params is None:
             transform_list.append(transforms.RandomHorizontalFlip())
         elif params['flip']:
