@@ -3,8 +3,7 @@ import time
 import torch
 import logging
 import torch.optim as optim
-
-from neuralnet.utils import *
+from neuralnet.utils import showImage, checkGPU
 
 def train(model, content_img, style_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=1000):
     use_gpu      = next(model.parameters()).is_cuda
@@ -42,7 +41,7 @@ def train(model, content_img, style_img, save_file, alpha=5, beta=0.01,  lr=0.05
     Generate Image
     '''
     logging.info('Generating Image.')
-    optimizer = optim.Adam([generated_image.requires_grad_()], lr=lr)
+    optimizer = optim.Adam([generated_image.requires_grad_(True)], lr=lr)
     
     for epoch in range(1,epochs+1):
         if (epoch % 100) == 0 or (epoch == 1):
