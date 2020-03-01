@@ -14,7 +14,7 @@ def checkGPU():
 
 def showImage(x, title='Image', save_file=False):
     '''Function to visualize images'''
-    img = x[0].clone().detach() # get first image in batch and make a copy
+    img = x[0].cpu().clone().detach() # get first image in batch and make a copy
     img = unNormalize(img)
     plt.title(title)
     plt.imshow(transforms.ToPILImage()(img))
