@@ -13,7 +13,6 @@ def load_config():
     """
     Load the configuration from config.yaml.
     """
-    timestamp = datetime.now().strftime('%m%d_%H%M%S')
     parser = argparse.ArgumentParser(description='Worker to train our models')
     parser.add_argument('-c', '--config', required=True, help='config file path')
     args = parser.parse_args()
@@ -22,10 +21,11 @@ def load_config():
     # Set generated image file name
     filename_c_img = Path(config['content_image']).stem
     filename_s_img = Path(config['style_image']).stem
-    config['save_file'] =  filename_c_img + '_' + filename_s_img + '_' + timestamp 
-
+    config['save_file'] = filename_c_img + '_' + filename_s_img
+    
     # Setup logging
-    logging.basicConfig(filename='out/worker_{}.log'.format(timestamp), 
+    config['timestamp'] = datetime.now().strftime('%m%d_%H%M%S')
+    logging.basicConfig(filename='out/{}__worker.log'.format(config['timestamp']), 
                         level=logging.INFO, 
                         format='[%(asctime)s] %(message)s', 
                         datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -50,8 +50,9 @@ def main():
     model = model_loader(config)
 
     # Load images
-    content_image = image_loader(config['content_image'])
-    style_image = image_loader(config['style_image'])
+    content_img   = image_loader(config['content_image'])
+    style_img     = image_loader(config['style_image'])
+    generated_img = image_loader(config['content_image'], config['generate_image'])
 
     # Use GPU, if available
     use_gpu = torch.cuda.is_available()
@@ -62,7 +63,19 @@ def main():
         logging.info("Using only CPU for training.")
 
     # Train    
-    train(model, content_image, style_image, config['save_file'], alpha=config['alpha'], beta=config['beta'], lr=config['learning_rate'], epochs=config['train_epoch'])
+    train(
+        model, 
+        content_img, 
+        style_img, 
+        generated_img, 
+        config['save_file'], 
+        alpha=config['alpha'], 
+        beta=config['beta'], 
+        lr=config['learning_rate'],
+        epochs=config['train_epoch'],
+        early_stop=config['early_stop'],
+        timestamp=config['timestamp']
+    )
     logging.info("Worker completed!")
 
 if __name__ == '__main__':

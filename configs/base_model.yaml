@@ -1,6 +1,7 @@
 # Hyperparameters
 train_epoch: 1000
 learning_rate: 0.5
+early_stop: 5
 
 # Model
 model: 'vgg19'
@@ -11,6 +12,10 @@ alpha: 5
 # How much to weight the style reconstruction term. 
 beta: 0.01
 
-# Images to blend
+# Images to blend:
 content_image: './data/landscapes/landscape2.jpg'
 style_image: './data/art/art1.jpg'
+
+# Generate Image: 
+# true = start with generated pink noise || false = start with content image (use this for faster results)
+generate_image: False
