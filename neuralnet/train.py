@@ -19,13 +19,14 @@ def train(model, content_img, style_img, save_file, alpha=5, beta=0.01,  lr=0.05
     if use_gpu:
         style_img       = style_img.cuda()
         content_img     = content_img.cuda()
+        generated_image = content_img.cpu().clone()
         generated_image = generated_image.cuda()
 
     '''
     Init content features
     '''
     logging.info('Initializing Content Features.')
-    showImage(content_img, "Content Image")
+    showImage(content_img, "Content Image",'content_img')
     _, _ = model(content_img,img_type='content')
 
 
@@ -33,7 +34,7 @@ def train(model, content_img, style_img, save_file, alpha=5, beta=0.01,  lr=0.05
     Init style features 
     '''
     logging.info('Initializing Style Features.')
-    showImage(style_img, "Style Image")
+    showImage(style_img, "Style Image",'style_img')
     _, _ = model(style_img,img_type='style')
 
     
@@ -49,7 +50,7 @@ def train(model, content_img, style_img, save_file, alpha=5, beta=0.01,  lr=0.05
 
         optimizer.zero_grad()    
         s_loss, c_loss = model(generated_image,img_type='generated')
-        loss = (alpha * c_loss) + (beta * s_loss)
+        loss = (1 * c_loss) + (1000000 * s_loss)
         loss.backward()
         optimizer.step(closure=(loss.item))
         train_loss += loss.item()
