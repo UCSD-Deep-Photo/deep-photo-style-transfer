@@ -1,0 +1,16 @@
+# Hyperparameters
+train_epoch: 1000
+learning_rate: 0.5
+
+# Model
+model: 'vgg19'
+
+# How much to weight the content reconstruction term. 
+alpha: 5
+
+# How much to weight the style reconstruction term. 
+beta: 0.01
+
+# Images to blend
+content_image: './data/landscapes/landscape2.jpg'
+style_image: './data/art/art1.jpg'
