@@ -1,3 +1,14 @@
+# Damn you, Apple!
+.DS_Store
+
+# Original code
+orig_code_annotated.lua
+orig_code.lua
+
+# Ignore all output files, but keep readme so git includes "/out" folder
+out/*
+!out/README.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
