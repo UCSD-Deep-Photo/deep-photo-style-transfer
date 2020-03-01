@@ -12,9 +12,12 @@ def image_transforms(image):
     return img_transforms(image).float()
 
 
-def image_loader(image_name):
+def image_loader(image_name, generate=False):
     image = Image.open(image_name)
     image = image_transforms(image)
     image = torch.tensor(image.cpu().clone().detach().requires_grad_(False))
     image = image.unsqueeze(0)
-    return image
+    if generate:
+        return torch.randn(image.data.size()) ## TODO: CHANGE THIS TO PINK NOISE
+    else: 
+        return image

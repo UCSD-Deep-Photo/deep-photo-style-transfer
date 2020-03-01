@@ -9,7 +9,6 @@ from abc import ABC,abstractmethod
 from matplotlib import pyplot as plt
 from torchvision import datasets, models, transforms
 
-
 class ContentLayer(nn.Module):
     '''Custom Content Layer'''
     def __init__(self, saved_feature):
@@ -37,7 +36,6 @@ class StyleLayer(nn.Module):
         features = input.view(b * w, h * c)  
         c_matrix = torch.mm(features, features.t())  
         return c_matrix.div(b * w * h * c)
-
 
 class vgg19(nn.Module):
     def __init__(self):
@@ -148,12 +146,6 @@ class vgg19(nn.Module):
             self.s_loss.append(self.s_layers[layer].loss)
         x = self.conv5(x)
 
-        # For testing:
-        # print("Output dims: ", x.size())    
-        # print(len(self.s_loss))
-        # print('--')
-        # print(self.s_loss)
-        # print("SUM:",sum(self.s_loss))
         return sum(self.s_loss), sum(self.c_loss)
 
     def forward(self, x,img_type):
