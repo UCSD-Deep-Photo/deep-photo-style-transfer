@@ -13,10 +13,14 @@ def train(model, content_img, style_img, save_file, alpha=5, beta=0.01,  lr=0.05
     train_loss   = 0.0
     counter      = 0
     model.train()
+    # TODO: ADD EARLY STOPPING AND SAVE BEST IMAGE
+
+    generated_image = torch.randn(content_img.data.size()) ## TODO: CHANGE THIS TO PINK NOISE
 
     if use_gpu:
-        style_img   = style_img.cuda()
-        content_img = content_img.cuda()
+        style_img       = style_img.cuda()
+        content_img     = content_img.cuda()
+        generated_image = generated_image.cuda()
 
     '''
     Init content features
@@ -25,26 +29,27 @@ def train(model, content_img, style_img, save_file, alpha=5, beta=0.01,  lr=0.05
     showImage(content_img, "Content Image")
     _, _ = model(content_img,img_type='content')
 
+
     '''
     Init style features 
     '''
     logging.info('Initializing Style Features.')
     showImage(style_img, "Style Image")
     _, _ = model(style_img,img_type='style')
+
     
     '''
     Generate Image
     '''
-    logging.info('Initializing Generated Image.')
-    image = torch.randn(content_img.data.size()) ## CHANGE THIS TO PINK NOISE
-    optimizer = optim.Adam([image.requires_grad_()], lr=lr)
+    logging.info('Generating Image.')
+    optimizer = optim.Adam([generated_image.requires_grad_()], lr=lr)
     
     for epoch in range(1,epochs+1):
         if (epoch % 100) == 0 or (epoch == 1):
-            showImage(image,'Generated Image',(save_file + '_e' + str(epoch))) #save img for first and every 100 epochs
+            showImage(generated_image,'Generated Image',(save_file + '_e' + str(epoch))) #save img for first and every 100 epochs
 
         optimizer.zero_grad()    
-        s_loss, c_loss = model(image,img_type='generated')
+        s_loss, c_loss = model(generated_image,img_type='generated')
         loss = (alpha * c_loss) + (beta * s_loss)
         loss.backward()
         optimizer.step(closure=(loss.item))
