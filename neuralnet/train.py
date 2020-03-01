@@ -14,7 +14,7 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     model.train()
     # TODO: ADD EARLY STOPPING AND SAVE BEST IMAGE
     # TODO: ADD LOSS PLOTS
-    
+
     if use_gpu:
         style_img     = style_img.cuda()
         content_img   = content_img.cuda()

@@ -6,7 +6,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import neuralnet.models
-from neuralnet.image_loader import image_loader
+from neuralnet.image_loader import image_loader, generate_image
 from neuralnet.train import train
 
 def load_config():
@@ -52,7 +52,7 @@ def main():
     # Load images
     content_img   = image_loader(config['content_image'])
     style_img     = image_loader(config['style_image'])
-    generated_img = image_loader(config['content_image'], config['generate_image'])
+    generated_img = generate_image(content_img, config['generate_image'])
 
     # Use GPU, if available
     use_gpu = torch.cuda.is_available()
@@ -76,6 +76,7 @@ def main():
         early_stop=config['early_stop'],
         timestamp=config['timestamp']
     )
+    
     logging.info("Worker completed!")
 
 if __name__ == '__main__':

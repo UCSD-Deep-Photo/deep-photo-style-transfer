@@ -7,10 +7,10 @@ early_stop: 5
 model: 'vgg19'
 
 # How much to weight the content reconstruction term. 
-alpha: 5
+alpha: 10
 
 # How much to weight the style reconstruction term. 
-beta: 0.01
+beta: 500000
 
 # Images to blend:
 content_image: './data/landscapes/landscape2.jpg'
