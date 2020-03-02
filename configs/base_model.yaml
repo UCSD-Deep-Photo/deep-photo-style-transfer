@@ -7,17 +7,17 @@ early_stop: 5
 model: 'vgg19'
 
 # How much to weight the content reconstruction term. 
-alpha: 10
+alpha: 1
 
 # How much to weight the style reconstruction term. 
-beta: 500000
+beta: 50000
 
 # Images to blend:
-content_image: './data/luke_images/content/luke_2c.jpeg'
-style_image: './data/luke_images/content/portrait_2c.jpeg'
+content_image: './data/luke_images/content/nature_1c.jpeg'
+style_image: './data/luke_images/style/texture_11s.jpeg'
 # content_image: './data/landscapes/landscape2.jpg'
 # style_image: './data/art/art1.jpg'
 
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)
-generate_image: True
+generate_image: False
