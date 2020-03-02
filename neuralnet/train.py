@@ -5,7 +5,7 @@ import logging
 import torch.optim as optim
 from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize
 
-def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=100,early_stop=5,timestamp=''):
+def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=1000,early_stop=5,timestamp=''):
     use_gpu      = next(model.parameters()).is_cuda
     result       = []
     ts           = time.time()

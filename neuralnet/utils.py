@@ -21,7 +21,8 @@ def showImage(x, title='Image', save_file=False):
     img = x[0].cpu().clone().detach() # get first image in batch and make a copy
     img = unNormalize(img)
     plt.title(title)
-    plt.imshow(transforms.ToPILImage()(img))
+    #plt.imshow(transforms.ToPILImage()(img))
+    plt.imshow(np.transpose(img,(1,2,0)))
     if save_file:
         if not os.path.exists('out'):
 	        os.makedirs('out')
