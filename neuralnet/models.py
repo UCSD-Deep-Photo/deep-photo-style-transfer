@@ -21,9 +21,20 @@ class ContentLayer(nn.Module):
 
 class StyleLayer(nn.Module):
     '''Custom Style Layer'''
-    def __init__(self, saved_feature):
+    def __init__(self, saved_feature, content_mask, style_mask):
         super(StyleLayer, self).__init__()
+        print(saved_feature.shape)
+        
         self.saved_feature = self.convariance_matrix(saved_feature).detach()
+        print(self.saved_feature.shape)
+        
+        if content_mask is not None:
+            print(content_mask.shape)
+            print(style_mask.shape)
+            
+        exit()
+        
+        
 
     def forward(self, input):
         c_matrix = self.convariance_matrix(input)
@@ -34,15 +45,23 @@ class StyleLayer(nn.Module):
         '''Cacluate covariance matrix'''
         b, w, h, c = input.size()  # batch, width, height, channels (RBG)
         features = input.view(b * w, h * c)  
+        print(features.shape)
         c_matrix = torch.mm(features, features.t())  
         return c_matrix.div(b * w * h * c)
 
 class vgg19(nn.Module):
-    def __init__(self):
+    def __init__(self, content_mask=None, style_mask=None):
         super(vgg19, self).__init__()
 
         # Initialize model
         self.model = models.vgg19(pretrained=True)
+        
+        self.content_mask = content_mask
+        self.style_mask = content_mask
+        
+        if self.content_mask is not None:
+            self.content_mask = torch.Tensor(self.content_mask).cuda()
+            self.style_mask = torch.Tensor(self.style_mask).cuda()
 
         # Freeze the weights
         for param in self.model.parameters():
@@ -109,28 +128,28 @@ class vgg19(nn.Module):
         self.c_loss = []
 
         layer = 0
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
+        if img_type == 'style': self.s_layers.append(StyleLayer(x, self.content_mask, self.style_mask))
         elif img_type == 'generated': 
             x = self.s_layers[layer].forward(x)
             self.s_loss.append(self.s_layers[layer].loss)
         x = self.conv1(x)
 
         layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
+        if img_type == 'style': self.s_layers.append(StyleLayer(x, self.content_mask, self.style_mask))
         elif img_type == 'generated': 
             x = self.s_layers[layer].forward(x)
             self.s_loss.append(self.s_layers[layer].loss)
         x = self.conv2(x)
         
         layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
+        if img_type == 'style': self.s_layers.append(StyleLayer(x, self.content_mask, self.style_mask))
         elif img_type == 'generated': 
             x = self.s_layers[layer].forward(x)
             self.s_loss.append(self.s_layers[layer].loss)
         x = self.conv3(x)
 
         layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
+        if img_type == 'style': self.s_layers.append(StyleLayer(x, self.content_mask, self.style_mask))
         elif img_type == 'content': self.c_layers.append(ContentLayer(x))
         elif img_type == 'generated': 
             x = self.s_layers[layer].forward(x)
@@ -140,7 +159,7 @@ class vgg19(nn.Module):
         x = self.conv4(x)
 
         layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
+        if img_type == 'style': self.s_layers.append(StyleLayer(x, self.content_mask, self.style_mask))
         elif img_type == 'generated': 
             x = self.s_layers[layer](x)
             self.s_loss.append(self.s_layers[layer].loss)

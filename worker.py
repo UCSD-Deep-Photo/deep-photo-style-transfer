@@ -6,6 +6,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import neuralnet.models
+import numpy as np
 from neuralnet.image_loader import image_loader, generate_image
 from neuralnet.train import train
 
@@ -38,20 +39,28 @@ def load_config():
 
     return config
 
-def model_loader(config):
+def model_loader(config, content_mask, style_mask):
     """
     Loads new model
     """
-    return getattr(neuralnet.models, config['model'])()
+    return getattr(neuralnet.models, config['model'])(content_mask, style_mask)
 
 def main():
     """
     Main
     """
     config = load_config()
+    
+    if config['use_mask']:
+        content_mask = np.load(config['content_mask'])
+        style_mask = np.load(config['style_mask'])
+    else:
+        content_mask = None
+        style_mask = None
+
 
     # Load Model
-    model = model_loader(config)
+    model = model_loader(config, content_mask, style_mask)
 
     # Load images
     content_img   = image_loader(config['content_image'])
@@ -65,7 +74,7 @@ def main():
         model = model.cuda()
     else:
         logging.info("Using only CPU for training.")
-
+        
     # Train    
     train(
         model, 
