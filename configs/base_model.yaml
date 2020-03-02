@@ -1,6 +1,6 @@
 # Hyperparameters
-train_epoch: 1000
-learning_rate: 0.5
+train_epoch: 3000
+learning_rate: 0.2
 early_stop: 5
 
 # Model
@@ -14,10 +14,10 @@ beta: 500000
 
 # Images to blend:
 content_image: './data/luke_images/content/building_11c.jpeg'
-# style_image: './data/luke_images/style/landscape_1s.jpeg'
+# style_image: './data/luke_images/style/landscape_9s.jpeg'
 # content_image: './data/landscapes/landscape2.jpg'
 style_image: './data/art/art1.jpg'
 
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)
-generate_image: False
+generate_image: True
