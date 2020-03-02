@@ -13,7 +13,9 @@ alpha: 10
 beta: 500000
 
 # Images to blend:
-content_image: './data/landscapes/landscape2.jpg'
+content_image: './data/luke_images/content/building_11c.jpeg'
+# style_image: './data/luke_images/style/landscape_1s.jpeg'
+# content_image: './data/landscapes/landscape2.jpg'
 style_image: './data/art/art1.jpg'
 
 # Generate Image: 
