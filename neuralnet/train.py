@@ -3,14 +3,10 @@ import time
 import torch
 import logging
 import torch.optim as optim
-<<<<<<< HEAD
 from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize, plot_losses
-=======
-from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize
 import numpy as np
 import torch.nn as nn
 from neuralnet.models import TVLoss
->>>>>>> origin/vincent-dev
 
 def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=1000,early_stop=5,timestamp=''):
     use_gpu      = next(model.parameters()).is_cuda
