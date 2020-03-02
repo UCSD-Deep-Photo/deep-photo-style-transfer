@@ -31,7 +31,11 @@ def load_config():
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logging.info("Configuration file: {}".format(args.config))
     logging.info("Using model {}".format(config['model']))
-    logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['train_epoch'], config['learning_rate'], config['content_image'], config['style_image']))
+    logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['train_epoch'],
+                                                                                            config['learning_rate'], 
+                                                                                            config['content_image'], 
+                                                                                            config['style_image']))
+
     return config
 
 def model_loader(config):

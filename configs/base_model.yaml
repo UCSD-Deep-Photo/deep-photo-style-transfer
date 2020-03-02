@@ -7,7 +7,7 @@ early_stop: 5
 model: 'vgg19'
 
 # How much to weight the content reconstruction term. 
-alpha: 10
+alpha: 1
 
 # How much to weight the style reconstruction term. 
 beta: 500000
