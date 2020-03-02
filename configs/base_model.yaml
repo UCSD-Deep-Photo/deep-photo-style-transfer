@@ -17,9 +17,9 @@ gamma: 0.000001
 # Images to blend:
 # content_image: './data/luke_images/content/building_11c.jpeg'
 content_image: './data/landscapes/landscape2.jpg'
-style_image: './data/art/art1.jpg'
+style_image: './data/landscapes/landscape23.jpg'
 # style_image: './data/art/art1.jpg'
 
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)
-generate_image: False
+generate_image: True
