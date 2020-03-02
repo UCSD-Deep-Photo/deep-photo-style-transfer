@@ -154,7 +154,7 @@ class vgg19(nn.Module):
     
     
 class TVLoss(nn.Module):
-    def __init__(self, TVLoss_weight=1):
+    def __init__(self):
         super(TVLoss,self).__init__()
 
     def forward(self, x):
@@ -171,4 +171,4 @@ class TVLoss(nn.Module):
         tv_width = torch.sum(torch.abs(n_width_next - n_width), axis=[1, 2, 3])
 
         tv_loss = torch.mean(tv_height + tv_width)
-        return tv_loss
+        return 2 * tv_loss

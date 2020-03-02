@@ -8,7 +8,7 @@ import numpy as np
 import torch.nn as nn
 from neuralnet.models import TVLoss
 
-def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=100,early_stop=5,timestamp=''):
+def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  gamma=0, lr=0.05, epochs=100,early_stop=5,timestamp=''):
     use_gpu      = next(model.parameters()).is_cuda
     result       = []
     ts           = time.time()
@@ -55,14 +55,14 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
             #save img for first and every 100 epochs
             showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
 
-        if (epoch % 10 == 0) or (epoch == 1):
+        if (epoch % 100 == 0) or (epoch == 1):
             img_progress.append(unNormalize(generated_img[0].detach().cpu()))
 
         optimizer.zero_grad()    
 
-        s_loss, c_loss = model(generated_img, img_type='generated')
         tv_loss = tv(generated_img)
-        loss = (alpha * c_loss) + (beta * s_loss) + (0.0001 * tv_loss)
+        s_loss, c_loss = model(generated_img, img_type='generated')
+        loss = (alpha * c_loss) + (beta * s_loss) + (gamma * tv_loss)
         loss.backward()
         optimizer.step(closure=(loss.item))
         train_loss += loss.item()

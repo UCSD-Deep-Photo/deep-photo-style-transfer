@@ -75,6 +75,7 @@ def main():
         config['save_file'], 
         alpha=config['alpha'], 
         beta=config['beta'], 
+        gamma=config['gamma'],
         lr=config['learning_rate'],
         epochs=config['train_epoch'],
         early_stop=config['early_stop'],

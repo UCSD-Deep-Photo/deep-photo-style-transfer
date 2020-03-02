@@ -1,5 +1,5 @@
 # Hyperparameters
-train_epoch: 1000
+train_epoch: 1500
 learning_rate: 0.5
 early_stop: 5
 
@@ -11,6 +11,8 @@ alpha: 1
 
 # How much to weight the style reconstruction term. 
 beta: 500000
+
+gamma: 1.0
 
 # Images to blend:
 # content_image: './data/luke_images/content/building_11c.jpeg'
