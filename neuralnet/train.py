@@ -3,7 +3,7 @@ import time
 import torch
 import logging
 import torch.optim as optim
-from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize
+from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize, plot_losses
 
 def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=1000,early_stop=5,timestamp=''):
     use_gpu      = next(model.parameters()).is_cuda
@@ -14,6 +14,7 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     model.train()
     
     img_progress = []
+    losses = []
     
     # TODO: ADD EARLY STOPPING AND SAVE BEST IMAGE
     # TODO: ADD LOSS PLOTS
@@ -63,12 +64,15 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
 
         if (epoch % 10) == 0:
             logging.info('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
+            losses.append(loss.item())
+            
     train_loss /= counter
     result.append((train_loss))
     checkGPU()
     logging.info('Final Loss: {}'.format(loss.item()))
     
     animate_progress(img_progress, save_file+'_animated')
+    plot_losses(losses, save_file+'_losses')
     
     return result
 

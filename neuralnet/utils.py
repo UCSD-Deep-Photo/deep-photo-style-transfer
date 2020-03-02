@@ -52,3 +52,12 @@ def animate_progress(img_progress, save_file):
     ani.save('out/' + save_file + '.mp4', writer=writer)
     
     HTML(ani.to_jshtml())
+    
+def plot_losses(losses, save_file, title='Loss over Epochs'):
+    
+    fig, ax = plt.subplots()
+    ax.plot(losses)
+    ax.set(xlabel='epoch', ylabel='loss', title=title)
+    fig.savefig('out/' + save_file + '.png')
+   
+    
