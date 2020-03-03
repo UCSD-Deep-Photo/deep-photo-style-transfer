@@ -7,10 +7,18 @@ from neuralnet.loss import *
 from neuralnet.layers import *
 from .base_model import BaseModel
 
+from neuralnet.image_loader import *
 
 class vgg19(BaseModel):
     def __init__(self, config):
         super(vgg19, self).__init__(config)
+        
+        # Load images
+        self.content   = load_image(config['content_image']).to(self.device)
+        self.style     = load_image(config['style_image']).to(self.device)
+        
+        self.generated = generate_image(self.content, config['generate_image']).to(self.device)
+        self.content   = self.content.to(self.device)
         
         self.alpha = config['alpha']
         self.beta = config['beta']

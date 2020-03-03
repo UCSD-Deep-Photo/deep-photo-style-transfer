@@ -5,8 +5,9 @@ import logging
 import argparse
 from datetime import datetime
 from pathlib import Path
-import neuralnet.gans
-from neuralnet.train_gan import train
+import gans
+from gans.train_gan import train
+from gans.dataset import create_dataset
 
 def load_config():
     """
@@ -17,11 +18,6 @@ def load_config():
     args = parser.parse_args()
     config = yaml.load(open(args.config, 'r'), Loader=yaml.SafeLoader)
 
-    # Set generated image file name
-    filename_c_img = Path(config['content_image']).stem
-    filename_s_img = Path(config['style_image']).stem
-    config['save_file'] = filename_c_img + '_' + filename_s_img
-    
     # Setup logging
     config['timestamp'] = datetime.now().strftime('%m%d_%H%M%S')
     logging.basicConfig(filename='out/{}__worker.log'.format(config['timestamp']), 
@@ -30,21 +26,21 @@ def load_config():
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logging.info("Configuration file: {}".format(args.config))
     logging.info("Using model {}".format(config['model']))
-    logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['n_epochs']+config['n_epochs_decay'],
-                                                                                            config['lr'], 
-                                                                                            config['content_image'], 
-                                                                                            config['style_image']))
-
     return config
 
 def model_loader(config):
     """
     Loads new model
     """
-    tt = getattr(neuralnet.gans, config['model'])
-    model = getattr(neuralnet.gans, config['model'])(config)
+    model = getattr(gans, config['model'])(config)
     model.setup(config)
     return model
+
+def data_loader(config):
+    dataset = create_dataset(config)  # create a dataset given config['dataset_mode'] and other options
+    dataset_size = len(dataset)    # get the number of images in the dataset.
+    logging.info('The number of training images = %d' % dataset_size)
+    return dataset, dataset_size
 
 def main():
     """
@@ -55,8 +51,10 @@ def main():
     # Load Model
     model = model_loader(config)
 
+    # Load Dataset
+    dataset, dataset_size = data_loader(config)
     # Train
-    train(model, config)
+    train(model, dataset, config)
 
     logging.info("Worker completed!")
 

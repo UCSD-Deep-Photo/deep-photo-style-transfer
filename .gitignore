@@ -1,6 +1,8 @@
 # Damn you, Apple!
 .DS_Store
 
+data/monet2photo
+
 # Original code
 orig_code_annotated.lua
 orig_code.lua

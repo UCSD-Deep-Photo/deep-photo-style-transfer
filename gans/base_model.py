@@ -2,8 +2,7 @@ import os
 import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
-from neuralnet import networks
-from neuralnet.image_loader import *
+from . import networks
 
 import logging
 """
@@ -45,21 +44,8 @@ class BaseModel(ABC):
         self.image_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
             
-        # Load images
-        self.content   = load_image(config['content_image']).to(self.device)
-        self.style     = load_image(config['style_image']).to(self.device)
-        
-        self.generated = generate_image(self.content, config['generate_image']).to(self.device)
-        self.content   = self.content.to(self.device)
-        
     def __call__(self, x):
         return self.forward(x)
-
-    @abstractmethod
-    def set_style_content(self, style, content):
-        """set up style net using given input
-        """
-        pass
 
     @abstractmethod
     def set_input(self, input):

@@ -64,5 +64,5 @@ display_ncols: 5
 
 # test
 results_dir: 'results/'
-phase: 'lastphase'
+phase: 'train'
 num_test: 100
