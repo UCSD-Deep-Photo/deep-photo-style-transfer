@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from . import networks
 from .image_loader import *
 
+import logging
 """
     This generic class is copied from pix2pix repo:
     https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/base_model.py
@@ -48,8 +49,6 @@ class BaseModel(ABC):
         self.content   = load_image(config['content_image']).to(self.device)
         self.style     = load_image(config['style_image']).to(self.device)
         
-        print(self.style.size())
-        print(self.content.size())
         self.generated = generate_image(self.content, config['generate_image']).to(self.device)
         self.content   = self.content.to(self.device)
         
@@ -91,7 +90,7 @@ class BaseModel(ABC):
         if not self.isTrain or config['continue_train']:
             load_suffix = 'iter_%d' % config['load_iter'] if config['load_iter'] > 0 else config['epoch']
             self.load_networks(load_suffix)
-        self.print_networks(config['verbose'])
+        self.print_networks()
 
     def train(self):
         """Make models eval mode during test time"""
@@ -131,9 +130,7 @@ class BaseModel(ABC):
                 scheduler.step(self.metric)
             else:
                 scheduler.step()
-
         lr = self.optimizers[0].param_groups[0]['lr']
-        print('learning rate = %.7f' % lr)
 
     def get_current_visuals(self):
         """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
@@ -163,24 +160,10 @@ class BaseModel(ABC):
                 net = getattr(self, 'net_' + name)
 
                 if len(self.gpu_ids) > 0 and torch.cuda.is_available():
-                    torch.save(net.module.cpu().state_dict(), save_path)
+                    torch.save(net.cpu().state_dict(), save_path)
                     net.cuda(self.gpu_ids[0])
                 else:
                     torch.save(net.cpu().state_dict(), save_path)
-
-    def __patch_instance_norm_state_dict(self, state_dict, module, keys, i=0):
-        """Fix InstanceNorm checkpoints incompatibility (prior to 0.4)"""
-        key = keys[i]
-        if i + 1 == len(keys):  # at the end, pointing to a parameter/buffer
-            if module.__class__.__name__.startswith('InstanceNorm') and \
-                    (key == 'running_mean' or key == 'running_var'):
-                if getattr(module, key) is None:
-                    state_dict.pop('.'.join(keys))
-            if module.__class__.__name__.startswith('InstanceNorm') and \
-               (key == 'num_batches_tracked'):
-                state_dict.pop('.'.join(keys))
-        else:
-            self.__patch_instance_norm_state_dict(state_dict, getattr(module, key), keys, i + 1)
 
     def load_networks(self, epoch):
         """Load all the networks from the disk.
@@ -194,34 +177,28 @@ class BaseModel(ABC):
                 net = getattr(self, 'net_' + name)
                 if isinstance(net, torch.nn.DataParallel):
                     net = net.module
-                print('loading the model from %s' % load_path)
+                logging.info('loading the model from %s' % load_path)
                 # if you are using PyTorch newer than 0.4 (e.g., built from
                 # GitHub source), you can remove str() on self.device
-                state_dict = torch.load(load_path, map_location=str(self.device))
+                state_dict = torch.load(load_path, map_location=self.device)
                 if hasattr(state_dict, '_metadata'):
                     del state_dict._metadata
 
-                # patch InstanceNorm checkpoints prior to 0.4
-                for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
-                    self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
                 net.load_state_dict(state_dict)
 
-    def print_networks(self, verbose):
-        """Print the total number of parameters in the network and (if verbose) network architecture
-        Parameters:
-            verbose (bool) -- if verbose: print the network architecture
+    def print_networks(self):
+        """Print the total number of parameters in the network
         """
-        print('---------- Networks initialized -------------')
+        logging.info('---------- Networks initialized -------------')
         for name in self.model_names:
             if isinstance(name, str):
                 net = getattr(self, 'net_' + name)
                 num_params = 0
                 for param in net.parameters():
                     num_params += param.numel()
-                if verbose:
-                    print(net)
-                print('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
-        print('-----------------------------------------------')
+                logging.info(net)
+                logging.info('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
+        logging.info('-----------------------------------------------')
 
     def set_requires_grad(self, nets, requires_grad=False):
         """Set requies_grad=Fasle for all the networks to avoid unnecessary computations

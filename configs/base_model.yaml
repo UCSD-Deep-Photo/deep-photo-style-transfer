@@ -38,7 +38,6 @@ generate_image: True
 log_freq: 100
 save_epoch_freq: 100
 save_latest_freq: 1
-verbose: True
 
 # dataset 
 dataroot: 'path/to/data'

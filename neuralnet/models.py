@@ -55,7 +55,7 @@ class vgg19(BaseModel):
         self.loss_names = ['S','C','TV','final']
         self.model_names = ['S']
         self._setup_cnn()
-        self.set_style_content(self.content, self.style)
+        self.set_style_content(self.style, self.content)
         if self.isTrain:
             self.optimizer_CS = torch.optim.Adam(self.net_S.parameters(), lr=config['lr'])
             self.optimizer_GEN = torch.optim.Adam([self.generated.requires_grad_(True)], lr=config['lr'])
@@ -137,7 +137,7 @@ class vgg19(BaseModel):
         modules.append(StyleLayer(style))
         modules.append(self.conv5)
 
-        self.net_S = nn.Sequential(nn.Sequential(*modules)).to(self.device)
+        self.net_S = nn.Sequential(*modules).to(self.device)
 
     def set_input(self, input):
         self.data_batch = input.to(self.device)

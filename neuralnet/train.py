@@ -36,11 +36,15 @@ def train(model, config):
         model.set_input(model.generated)         # unpack data from dataset and apply preprocessing
         model.optimize_parameters()   # calculate loss functions, get gradients, update network weights
         if epoch % config['save_epoch_freq'] == 0:              # cache our model every <save_epoch_freq> epochs
-            logging.info('saving the model at the end of epoch %d, iters %d' % (epoch, total_iters))
+            logging.info('saving the model at the end of epoch {}'.format(epoch))
             model.save_networks('latest')
             model.save_networks(epoch)
         if epoch % config['log_freq'] == 0: 
-            logging.info('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, config['n_epochs'] + config['n_epochs_decay'], time.time() - t_data_time))
+            logging.info('Epoch: {}/{}, Loss: {}, Time: {}'.format(
+                            epoch,
+                            config['n_epochs'] + config['n_epochs_decay'], 
+                            getattr(model, 'loss_' + model.loss_names[-1]).item(), 
+                            time.time() - t_data_time))
         model.update_learning_rate()                     # update learning rates at the end of every epoch.
     
     
