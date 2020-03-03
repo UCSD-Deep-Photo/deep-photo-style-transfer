@@ -1,6 +1,6 @@
 # Hyperparameters
 train_epoch: 1000
-learning_rate: 0.5
+learning_rate: 0.2
 early_stop: 5
 
 # Model
@@ -12,16 +12,16 @@ alpha: 10
 # How much to weight the style reconstruction term. 
 beta: 500000
 
-gamma: 0.00001
+gamma: 0.0001
 # gamma: 0
 
 # Images to blend:
 # content_image: './data/luke_images/content/building_11c.jpeg'
-content_image: './data/seg_test/landscape2.jpg'
+content_image: './data/seg_test/landscape12.jpg'
 style_image: './data/seg_test/landscape1.jpg'
 
 use_mask: True
-content_mask: './data/seg_test/landscape2.npy'
+content_mask: './data/seg_test/landscape12.npy'
 style_mask: './data/seg_test/landscape1.npy'
 
 # Generate Image: 

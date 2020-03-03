@@ -17,11 +17,11 @@ gamma: 0.00001
 
 # Images to blend:
 # content_image: './data/luke_images/content/building_11c.jpeg'
-content_image: './data/seg_test/landscape2.jpg'
+content_image: './data/seg_test/landscape12.jpg'
 style_image: './data/seg_test/landscape1.jpg'
 
 use_mask: True
-content_mask: './data/seg_test/landscape2.npy'
+content_mask: './data/seg_test/landscape12.npy'
 style_mask: './data/seg_test/landscape1.npy'
 
 # Generate Image: 

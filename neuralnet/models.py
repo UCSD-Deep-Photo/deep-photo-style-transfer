@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as TF
+import torch.nn.functional as F
 from pycocotools.coco import COCO
 from torchvision import datasets, models, transforms
 from torch.nn.utils.rnn import pack_padded_sequence
@@ -21,33 +22,97 @@ class ContentLayer(nn.Module):
 
 class StyleLayer(nn.Module):
     '''Custom Style Layer'''
+    
     def __init__(self, saved_feature, content_mask, style_mask):
         super(StyleLayer, self).__init__()
-        print(saved_feature.shape)
         
         self.saved_feature = self.convariance_matrix(saved_feature).detach()
-        print(self.saved_feature.shape)
+        target_feature = saved_feature
+
+        self.style_mask = style_mask.detach()
+        self.content_mask = content_mask.detach()
+
+        _, channel_f, height, width = target_feature.size()
+        channel = self.style_mask.size()[0]
         
-        if content_mask is not None:
-            print(content_mask.shape)
-            print(style_mask.shape)
-            
-        exit()
+        # ********
+        xc = torch.linspace(-1, 1, width).repeat(height, 1)
+        yc = torch.linspace(-1, 1, height).view(-1, 1).repeat(1, width)
+        grid = torch.cat((xc.unsqueeze(2), yc.unsqueeze(2)), 2) 
+        grid = grid.unsqueeze_(0).cuda()
+        mask_ = F.grid_sample(self.style_mask.unsqueeze(0), grid).squeeze(0).cuda()
+        # ********       
+        target_feature_3d = target_feature.squeeze(0).clone().cuda()
+        size_of_mask = (channel, channel_f, height, width)
+        target_feature_masked = torch.zeros(size_of_mask, dtype=torch.float).cuda()
+        for i in range(channel):
+            target_feature_masked[i, :, :, :] = mask_[i, :, :] * target_feature_3d
+
+        self.targets = list()
+        for i in range(channel):
+            if torch.mean(mask_[i, :, :]) > 0.0:
+                temp = target_feature_masked[i, :, :, :]
+                self.targets.append( self.convariance_matrix(temp.unsqueeze(0)).detach()/torch.mean(mask_[i, :, :]) )
+            else:
+                self.targets.append( self.convariance_matrix(temp.unsqueeze(0)).detach())
         
         
 
-    def forward(self, input):
-        c_matrix = self.convariance_matrix(input)
-        self.loss = TF.mse_loss(c_matrix, self.saved_feature)
-        return input
+    def forward(self, input_feature):
+        self.loss = 0
+        _, channel_f, height, width = input_feature.size()
+        channel = len(self.targets)
+        xc = torch.linspace(-1, 1, width).repeat(height, 1).cuda()
+        yc = torch.linspace(-1, 1, height).view(-1, 1).repeat(1, width).cuda()
+        grid = torch.cat((xc.unsqueeze(2), yc.unsqueeze(2)), 2).cuda()
+        grid = grid.unsqueeze_(0).to("cuda")
+        mask = F.grid_sample(self.content_mask.unsqueeze(0), grid).squeeze(0).cuda()
+        input_feature_3d = input_feature.squeeze(0).clone().cuda()
+        size_of_mask = (channel, channel_f, height, width)
+        input_feature_masked = torch.zeros(size_of_mask, dtype=torch.float32).cuda()
+        for i in range(channel):
+            input_feature_masked[i, :, :, :] = mask[i, :, :] * input_feature_3d
+        
+        inputs_G = list()
+        for i in range(channel):
+            temp = input_feature_masked[i, :, :, :]
+            mask_mean = torch.mean(mask[i, :, :])
+            if mask_mean > 0.0:
+                inputs_G.append(self.convariance_matrix(temp.unsqueeze(0)) / mask_mean)
+            else:
+                inputs_G.append(self.convariance_matrix(temp.unsqueeze(0)))
+                
+        for i in range(channel):
+            mask_mean = torch.mean(mask[i, :, :]).cuda()
+            self.loss += F.mse_loss(inputs_G[i].cuda(), self.targets[i].cuda()) * mask_mean
+        
+        return input_feature
+        
 
     def convariance_matrix(self,input):
         '''Cacluate covariance matrix'''
         b, w, h, c = input.size()  # batch, width, height, channels (RBG)
-        features = input.view(b * w, h * c)  
-        print(features.shape)
+        features = input.view(b * w, h * c).cuda()
         c_matrix = torch.mm(features, features.t())  
         return c_matrix.div(b * w * h * c)
+
+# class StyleLayer(nn.Module):
+#     '''Custom Style Layer'''
+#     def __init__(self, saved_feature, content_mask, style_mask):
+#         super(StyleLayer, self).__init__()
+#         self.saved_feature = self.convariance_matrix(saved_feature).detach()
+
+#     def forward(self, input):
+#         c_matrix = self.convariance_matrix(input)
+#         self.loss = TF.mse_loss(c_matrix, self.saved_feature)
+#         return input
+
+#     def convariance_matrix(self,input):
+#         '''Cacluate covariance matrix'''
+#         b, w, h, c = input.size()  # batch, width, height, channels (RBG)
+#         features = input.view(b * w, h * c)  
+#         c_matrix = torch.mm(features, features.t())  
+#         return c_matrix.div(b * w * h * c)
 
 class vgg19(nn.Module):
     def __init__(self, content_mask=None, style_mask=None):
