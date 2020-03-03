@@ -33,14 +33,14 @@ class StyleLayer(nn.Module):
         self.content_mask = content_mask.detach()
 
         _, channel_f, height, width = target_feature.size()
-        channel = self.style_mask.size()[0]
+        channel = self.style_mask.size()[1]
         
         # ********
         xc = torch.linspace(-1, 1, width).repeat(height, 1)
         yc = torch.linspace(-1, 1, height).view(-1, 1).repeat(1, width)
         grid = torch.cat((xc.unsqueeze(2), yc.unsqueeze(2)), 2) 
         grid = grid.unsqueeze_(0).cuda()
-        mask_ = F.grid_sample(self.style_mask.unsqueeze(0), grid).squeeze(0).cuda()
+        mask_ = F.grid_sample(self.style_mask, grid).squeeze(0).cuda()
         # ********       
         target_feature_3d = target_feature.squeeze(0).clone().cuda()
         size_of_mask = (channel, channel_f, height, width)
@@ -54,6 +54,7 @@ class StyleLayer(nn.Module):
                 temp = target_feature_masked[i, :, :, :]
                 self.targets.append( self.convariance_matrix(temp.unsqueeze(0)).detach()/torch.mean(mask_[i, :, :]) )
             else:
+                temp = target_feature_masked[i, :, :, :]
                 self.targets.append( self.convariance_matrix(temp.unsqueeze(0)).detach())
         
         
@@ -66,7 +67,7 @@ class StyleLayer(nn.Module):
         yc = torch.linspace(-1, 1, height).view(-1, 1).repeat(1, width).cuda()
         grid = torch.cat((xc.unsqueeze(2), yc.unsqueeze(2)), 2).cuda()
         grid = grid.unsqueeze_(0).to("cuda")
-        mask = F.grid_sample(self.content_mask.unsqueeze(0), grid).squeeze(0).cuda()
+        mask = F.grid_sample(self.content_mask, grid).squeeze(0).cuda()
         input_feature_3d = input_feature.squeeze(0).clone().cuda()
         size_of_mask = (channel, channel_f, height, width)
         input_feature_masked = torch.zeros(size_of_mask, dtype=torch.float32).cuda()
@@ -110,7 +111,10 @@ class StyleLayer(nn.Module):
 #     def convariance_matrix(self,input):
 #         '''Cacluate covariance matrix'''
 #         b, w, h, c = input.size()  # batch, width, height, channels (RBG)
+# #         print(input.size())
 #         features = input.view(b * w, h * c)  
+# #         print(features.size())
+# #         exit()
 #         c_matrix = torch.mm(features, features.t())  
 #         return c_matrix.div(b * w * h * c)
 
@@ -233,7 +237,7 @@ class vgg19(nn.Module):
         return sum(self.s_loss), sum(self.c_loss)
 
     def forward(self, x,img_type):
-        s_loss, c_loss = self.encoder(x,img_type)
+        s_loss, c_loss = self.encoder(x, img_type)
         return s_loss,c_loss
     
     

@@ -50,22 +50,17 @@ def main():
     Main
     """
     config = load_config()
+    use_mask = config['use_mask']
     
-    if config['use_mask']:
-        content_mask = np.load(config['content_mask'])
-        style_mask = np.load(config['style_mask'])
-    else:
-        content_mask = None
-        style_mask = None
-
+    # Load images, masks
+    content_img, content_mask   = image_loader(config['content_image'], use_mask)
+    style_img, style_mask       = image_loader(config['style_image'], use_mask)
+    generated_img = generate_image(content_img, config['generate_image'])
+    
 
     # Load Model
     model = model_loader(config, content_mask, style_mask)
 
-    # Load images
-    content_img   = image_loader(config['content_image'])
-    style_img     = image_loader(config['style_image'])
-    generated_img = generate_image(content_img, config['generate_image'])
 
     # Use GPU, if available
     use_gpu = torch.cuda.is_available()
