@@ -36,7 +36,7 @@ generate_image: True
 
 # freq
 log_freq: 100
-save_epoch_freq: 100
+save_epoch_freq: 1000
 save_latest_freq: 1
 
 # dataset 

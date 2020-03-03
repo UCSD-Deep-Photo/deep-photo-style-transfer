@@ -48,7 +48,7 @@ def train(model, config):
         model.update_learning_rate()                     # update learning rates at the end of every epoch.
     
     
-    animate_progress(img_progress, save_file+'_animated')
-    plot_losses(losses, save_file+'_losses')
+    animate_progress(img_progress, config['save_file']+'_animated')
+    # plot_losses(losses, config['save_file']+'_losses')
     
     return result

@@ -7,7 +7,7 @@ from .image_loader import *
 
 import logging
 """
-    This generic class is copied from pix2pix repo:
+    This generic class is copied and customized from pix2pix repo:
     https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/base_model.py
 """
 
