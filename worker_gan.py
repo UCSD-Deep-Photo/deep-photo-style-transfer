@@ -6,7 +6,6 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import neuralnet.models
-from neuralnet.image_loader import image_loader, generate_image
 from neuralnet.train import train
 
 def load_config():
@@ -31,8 +30,8 @@ def load_config():
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logging.info("Configuration file: {}".format(args.config))
     logging.info("Using model {}".format(config['model']))
-    logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['train_epoch'],
-                                                                                            config['learning_rate'], 
+    logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['n_epochs']+config['n_epochs_decay'],
+                                                                                            config['lr'], 
                                                                                             config['content_image'], 
                                                                                             config['style_image']))
 
@@ -42,7 +41,9 @@ def model_loader(config):
     """
     Loads new model
     """
-    return getattr(neuralnet.models, config['model'])()
+    model = getattr(neuralnet.models, config['model'])(config)
+    model.setup(config)
+    return model
 
 def main():
     """
@@ -53,34 +54,9 @@ def main():
     # Load Model
     model = model_loader(config)
 
-    # Load images
-    content_img   = image_loader(config['content_image'])
-    style_img     = image_loader(config['style_image'])
-    generated_img = generate_image(content_img, config['generate_image'])
+    # Train
+    train(model, config)
 
-    # Use GPU, if available
-    use_gpu = torch.cuda.is_available()
-    if use_gpu:
-        logging.info("Using GPU for training.")
-        model = model.cuda()
-    else:
-        logging.info("Using only CPU for training.")
-
-    # Train    
-    train(
-        model, 
-        content_img, 
-        style_img, 
-        generated_img, 
-        config['save_file'], 
-        alpha=config['alpha'], 
-        beta=config['beta'], 
-        lr=config['learning_rate'],
-        epochs=config['train_epoch'],
-        early_stop=config['early_stop'],
-        timestamp=config['timestamp']
-    )
-    
     logging.info("Worker completed!")
 
 if __name__ == '__main__':
