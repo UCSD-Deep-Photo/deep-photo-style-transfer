@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import matplotlib.animation as animation
 from IPython.display import HTML
+from PIL import Image
 
 def checkGPU():
     logging.info("GPU Usage - cached:{}/{} GB, allocated:{}/{} GB".format(round(torch.cuda.memory_cached()/1024/1024/1024,5), 
@@ -22,13 +23,31 @@ def showImage(x, title='Image', save_file=False):
     img = unNormalize(img)
     plt.title(title)
     #plt.imshow(transforms.ToPILImage()(img))
-    plt.imshow(np.transpose(img,(1,2,0)))
+    transpose_im = np.transpose(img,(1,2,0))
+    
+    fig = plt.figure(frameon=False)
+    ax = plt.Axes(fig, [0.,0.,1.,1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(transpose_im, aspect='auto')
+    fig.savefig('out/fig_'+save_file+'.jpeg')
+
+    plt.imshow(transpose_im)
     if save_file:
         if not os.path.exists('out'):
 	        os.makedirs('out')
         plt.savefig(('out/' + save_file + '.png'))
     else:
         plt.show() 
+        
+#     fig = plt.figure()
+#     fig.canvas.draw()
+#     w,h = fig.canvas.get_width_height()
+#     buf = np.fromstring(fig.canvas.tostring_argb(),dtype=np.uint8)
+#     buf.shape = (w,h,4)
+#     pil_im = Image.frombytes("RGBA", (w,h), buf.tostring())
+#     pil_im.save('out/pil_'+save_file+'.png')    
+
     del img 
 
 def unNormalize(x):

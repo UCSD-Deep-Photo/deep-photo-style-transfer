@@ -13,10 +13,13 @@ alpha: 1
 beta: 50000
 
 # Images to blend:
-content_image: './data/luke_images/content/nature_1c.jpeg'
-style_image: './data/luke_images/style/texture_11s.jpeg'
+# content_image: './data/luke_images/content/nature_1c.jpeg'
+# style_image: './data/luke_images/style/texture_11s.jpeg'
 # content_image: './data/landscapes/landscape2.jpg'
-# style_image: './data/art/art1.jpg'
+# style_image: './data/landscapes/landscape1.jpg'
+
+content_image: './out/fig_0303_125327_landscape2_landscape1_e3000.jpeg'
+style_image: './data/landscapes/landscape2.jpg'
 
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)

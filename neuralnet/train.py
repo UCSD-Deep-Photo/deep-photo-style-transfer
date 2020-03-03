@@ -71,6 +71,7 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
             
         progress_bar(epoch, epochs, prefix='Progress:', suffix='Complete', length=50)
     
+    showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
     
     print("done.")
     train_loss /= counter
