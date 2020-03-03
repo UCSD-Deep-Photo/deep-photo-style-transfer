@@ -2,8 +2,8 @@ import os
 import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
-from . import networks
-from .image_loader import *
+from neuralnet import networks
+from neuralnet.image_loader import *
 
 import logging
 """

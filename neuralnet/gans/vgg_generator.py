@@ -5,7 +5,7 @@ import logging
 from torchvision import models
 from neuralnet.loss import *
 from neuralnet.layers import *
-from neuralnet.models.base_model import BaseModel
+from .base_model import BaseModel
 
 
 class vgg19(BaseModel):

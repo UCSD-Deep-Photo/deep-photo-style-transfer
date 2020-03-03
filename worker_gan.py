@@ -5,8 +5,8 @@ import logging
 import argparse
 from datetime import datetime
 from pathlib import Path
-import neuralnet.models
-from neuralnet.train import train
+import neuralnet.gans
+from neuralnet.train_gan import train
 
 def load_config():
     """
@@ -41,7 +41,8 @@ def model_loader(config):
     """
     Loads new model
     """
-    model = getattr(neuralnet.models, config['model'])(config)
+    tt = getattr(neuralnet.gans, config['model'])
+    model = getattr(neuralnet.gans, config['model'])(config)
     model.setup(config)
     return model
 
