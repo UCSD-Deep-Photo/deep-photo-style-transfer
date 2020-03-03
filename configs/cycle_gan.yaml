@@ -1,7 +1,7 @@
 ######################################
 # general hyperparams
 ######################################
-model: 'CycleGANModel'
+model: 'cycle_gan'
 gpu_ids:
     - 0
 isTrain: True
@@ -53,10 +53,10 @@ n_epochs_decay: 100
 lr_decay_iters: 100
 
 # freq
-log_epoch_freq: 1
-print_iter_freq: 1000
+print_freq: 1000
+update_html_freq: 1000
 save_epoch_freq: 5
-save_latest_freq: 1
+save_latest_freq: 5000
 
 ######################################
 # dataset 
@@ -76,7 +76,9 @@ batch_size: 2
 serial_batches: False
 num_threads: 4
 
+######################################
 # visualizer
+######################################
 display_id: 1
 aspect_ratio: 1
 no_html: False
@@ -85,6 +87,7 @@ display_server: 'localhost'
 display_port: 8532
 display_env: 'results'
 display_ncols: 5
+display_freq: 400
 
 # test
 results_dir: 'results/'

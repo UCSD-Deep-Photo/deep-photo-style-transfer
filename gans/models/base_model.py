@@ -43,7 +43,7 @@ class BaseModel(ABC):
         self.optimizers = []
         self.image_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
-            
+
     def __call__(self, x):
         return self.forward(x)
 
