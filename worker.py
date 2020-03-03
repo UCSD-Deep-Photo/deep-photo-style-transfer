@@ -6,7 +6,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import neuralnet.models
-from neuralnet.image_loader import image_loader, generate_image
+from neuralnet.image_loader import *
 from neuralnet.train import train
 
 def load_config():
@@ -54,8 +54,8 @@ def main():
     model = model_loader(config)
 
     # Load images
-    content_img   = image_loader(config['content_image'])
-    style_img     = image_loader(config['style_image'])
+    content_img   = load_image(config['content_image'])
+    style_img     = load_image(config['style_image'])
     generated_img = generate_image(content_img, config['generate_image'])
 
     # Use GPU, if available
