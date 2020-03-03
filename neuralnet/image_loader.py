@@ -12,7 +12,7 @@ def image_transforms(image):
     return img_transforms(image).float()
 
 
-def image_loader(image_name):
+def load_image(image_name):
     image = Image.open(image_name)
     image = image_transforms(image)
     image = image.cpu().clone().detach().requires_grad_(False)
@@ -24,4 +24,3 @@ def generate_image(content_img, generate=False):
         return torch.randn(content_img.data.size()) ## TODO: CHANGE THIS TO PINK NOISE
     else: 
         return content_img.cpu().clone()
-        

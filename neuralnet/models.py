@@ -8,37 +8,75 @@ from abc import ABC,abstractmethod
 from matplotlib import pyplot as plt
 from torchvision import datasets, models, transforms
 
-from neuralnet.layers import *
 from neuralnet.loss import *
+from neuralnet.base_model import BaseModel
 
-class vgg19(nn.Module):
-    def __init__(self):
-        super(vgg19, self).__init__()
 
+class ContentLayer(nn.Module):
+    '''Custom Content Layer'''
+    def __init__(self, saved_feature):
+        super(ContentLayer, self).__init__()
+        self.saved_feature = saved_feature.detach()
+
+    def forward(self, input):
+        self.loss = TF.mse_loss(input, self.saved_feature)
+        return input
+
+class StyleLayer(nn.Module):
+    '''Custom Style Layer'''
+    def __init__(self, saved_feature):
+        super(StyleLayer, self).__init__()
+        self.saved_feature = self.covariance_matrix(saved_feature).detach()
+
+    def forward(self, input):
+        c_matrix = self.covariance_matrix(input)
+        self.loss = TF.mse_loss(c_matrix, self.saved_feature)
+        return input
+
+    def covariance_matrix(self,input):
+        '''Cacluate covariance matrix'''
+        b, w, h, c = input.size()  # batch, width, height, channels (RBG)
+        features = input.view(b * w, h * c)  
+        c_matrix = torch.mm(features, features.t())  
+        return c_matrix.div(b * w * h * c)
+
+class vgg19(BaseModel):
+    def __init__(self, config):
+        super(vgg19, self).__init__(config)
+        
+        self.alpha = config['alpha']
+        self.beta = config['beta']
         # Initialize model
         self.model = models.vgg19(pretrained=True)
 
         # Freeze the weights
         for param in self.model.parameters():
             param.requires_grad = False
-        
-        self.c_loss, self.c_layers = [],[]
-        self.s_loss, self.s_layers = [],[]
+        self.loss_names = ['S','C','TV','final']
+        self.model_names = ['S']
+        self._setup_cnn()
+        self.set_style_content(self.content, self.style)
+        if self.isTrain:
+            self.optimizer_CS = torch.optim.Adam(self.net_S.parameters(), lr=config['lr'])
+            self.optimizer_GEN = torch.optim.Adam([self.generated.requires_grad_(True)], lr=config['lr'])
+            self.optimizers.append(self.optimizer_CS)
+            self.optimizers.append(self.optimizer_GEN)
 
+    def _setup_cnn(self):
         self.conv1 = nn.Sequential(
             self.model.features[0], # conv2d
             self.model.features[1], # relu
             self.model.features[2], # conv2d
             self.model.features[3], # relu
             self.model.features[4], # maxpool
-        )
+        ).to(self.device)
         self.conv2 = nn.Sequential(
             self.model.features[5], # conv2d
             self.model.features[6], # relu
             self.model.features[7], # conv2d
             self.model.features[8], # relu
             self.model.features[9], # maxpool
-        )
+        ).to(self.device)
         self.conv3 = nn.Sequential(
             self.model.features[10], # conv2d  
             self.model.features[11], # relu 
@@ -49,7 +87,7 @@ class vgg19(nn.Module):
             self.model.features[16], # conv2d  
             self.model.features[17], # relu 
             self.model.features[18], # maxpool
-        )
+        ).to(self.device)
         self.conv4 = nn.Sequential(
             self.model.features[19], # conv2d 
             self.model.features[20], # relu
@@ -60,7 +98,7 @@ class vgg19(nn.Module):
             self.model.features[25], # conv2d 
             self.model.features[26], # relu
             self.model.features[27], # maxpool
-        )
+        ).to(self.device)
         self.conv5 = nn.Sequential(
             self.model.features[28], # conv2d 
             self.model.features[29], # relu
@@ -71,57 +109,60 @@ class vgg19(nn.Module):
             self.model.features[34], # conv2d 
             self.model.features[35], # relu
             self.model.features[36], # maxpool
-        )
+        ).to(self.device)
 
-    def __call__(self, x, img_type):
+    def set_style_content(self, style, content):
+        modules = []
+        modules.append(StyleLayer(style))
+        modules.append(self.conv1)
+
+        style   = self.conv1(style)
+        content = self.conv1(content)
+        modules.append(StyleLayer(style))
+        modules.append(self.conv2)
+
+        style   = self.conv2(style)
+        content = self.conv2(content)
+        modules.append(StyleLayer(style))
+        modules.append(self.conv3)
+
+        style   = self.conv3(style)
+        content = self.conv3(content)
+        modules.append(StyleLayer(style))
+        modules.append(ContentLayer(content))
+        modules.append(self.conv4)
+
+        style   = self.conv4(style)
+        content = self.conv4(content)
+        modules.append(StyleLayer(style))
+        modules.append(self.conv5)
+
+        self.net_S = nn.Sequential(nn.Sequential(*modules)).to(self.device)
+
+    def set_input(self, input):
+        self.data_batch = input.to(self.device)
+
+    def __call__(self, x):
         ''' Make Model callable with default set to forward()'''
-        return self.forward(x, img_type)
+        self.set_input(x)
+        return self.forward()
 
-    def encoder(self, x, img_type='generated'):
-        # Reset loss for each fwd pass:
-        self.s_loss = []
-        self.c_loss = []
-
-        layer = 0
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
-        elif img_type == 'generated': 
-            x = self.s_layers[layer].forward(x)
-            self.s_loss.append(self.s_layers[layer].loss)
-        x = self.conv1(x)
-
-        layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
-        elif img_type == 'generated': 
-            x = self.s_layers[layer].forward(x)
-            self.s_loss.append(self.s_layers[layer].loss)
-        x = self.conv2(x)
+    def forward(self):
+        """Run forward pass; called by both functions <optimize_parameters> and <test>."""
+        return self.net_S.forward(self.data_batch)
         
-        layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
-        elif img_type == 'generated': 
-            x = self.s_layers[layer].forward(x)
-            self.s_loss.append(self.s_layers[layer].loss)
-        x = self.conv3(x)
+    def backward(self):
+        self.loss_C = sum(layer.loss for layer in self.net_S if type(layer) is ContentLayer)
+        self.loss_S = sum(layer.loss for layer in self.net_S if type(layer) is StyleLayer)
+        self.loss_TV = TVLoss()(self.generated)
+        self.loss_final = (self.alpha * self.loss_C) + (self.beta * self.loss_S) + (0.0001 * self.loss_TV)
+        self.loss_final.backward()
 
-        layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
-        elif img_type == 'content': self.c_layers.append(ContentLayer(x))
-        elif img_type == 'generated': 
-            x = self.s_layers[layer].forward(x)
-            self.s_loss.append(self.s_layers[layer].loss)
-            x = self.c_layers[0].forward(x)
-            self.c_loss.append(self.c_layers[0].loss)
-        x = self.conv4(x)
-
-        layer += 1
-        if img_type == 'style': self.s_layers.append(StyleLayer(x))
-        elif img_type == 'generated': 
-            x = self.s_layers[layer](x)
-            self.s_loss.append(self.s_layers[layer].loss)
-        x = self.conv5(x)
-
-        return sum(self.s_loss), sum(self.c_loss)
-
-    def forward(self, x,img_type):
-        s_loss, c_loss = self.encoder(x,img_type)
-        return s_loss,c_loss
+    def optimize_parameters(self):
+        """Calculate losses, gradients, and update network weights; called in every training iteration"""
+        self.optimizer_CS.zero_grad()
+        self.optimizer_GEN.zero_grad()
+        self.forward()
+        self.backward()
+        self.optimizer_CS.step()
+        self.optimizer_GEN.step()

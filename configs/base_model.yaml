@@ -1,10 +1,22 @@
-# Hyperparameters
-train_epoch: 3000
-learning_rate: 0.2
+# model hyperparams
+model: 'vgg19'
+gpu_ids:
+    - 0
+isTrain: True
+checkpoints_dir: 'checkpoints/'
+lr: 0.2
+continue_train: False
+load_iter: 0
+epoch_count: 0
 early_stop: 5
 
-# Model
-model: 'vgg19'
+# scheduler
+lr_policy: 'linear'
+n_epochs: 2000
+n_epochs_decay: 1000
+lr_decay_iters: 1000
+
+# More specific parameters
 
 # How much to weight the content reconstruction term. 
 alpha: 1
@@ -13,11 +25,45 @@ alpha: 1
 beta: 500000
 
 # Images to blend:
-content_image: './data/luke_images/content/luke_2c.jpeg'
-style_image: './data/luke_images/content/portrait_2c.jpeg'
-# content_image: './data/landscapes/landscape2.jpg'
-# style_image: './data/art/art1.jpg'
+# content_image: './data/luke_images/content/luke_2c.jpeg'
+# style_image: './data/luke_images/content/portrait_2c.jpeg'
+content_image: './data/landscapes/landscape2.jpg'
+style_image: './data/art/art1.jpg'
 
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)
 generate_image: True
+
+# freq
+log_freq: 100
+save_epoch_freq: 100
+save_latest_freq: 1
+verbose: True
+
+# dataset 
+dataroot: 'path/to/data'
+load_size: 512
+crop_size: 256
+preprocess: 'resize_and_crop'
+no_flip: True
+
+# dataloader
+dataset_mode: 'SomeDataset'
+batch_size: 5
+serial_batches: False
+num_threads: 4
+
+# visualizer
+display_id: 1
+aspect_ratio: 1
+no_html: False
+display_winsize: 10
+display_server: 'localhost'
+display_port: 8532
+display_env: 'results'
+display_ncols: 5
+
+# test
+results_dir: 'results/'
+phase: 'lastphase'
+num_test: 100
