@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as TF
-from pycocotools.coco import COCO
 from torchvision import datasets, models, transforms
 from torch.nn.utils.rnn import pack_padded_sequence
 import logging
@@ -9,33 +8,8 @@ from abc import ABC,abstractmethod
 from matplotlib import pyplot as plt
 from torchvision import datasets, models, transforms
 
-class ContentLayer(nn.Module):
-    '''Custom Content Layer'''
-    def __init__(self, saved_feature):
-        super(ContentLayer, self).__init__()
-        self.saved_feature = saved_feature.detach()
-
-    def forward(self, input):
-        self.loss = TF.mse_loss(input, self.saved_feature)
-        return input
-
-class StyleLayer(nn.Module):
-    '''Custom Style Layer'''
-    def __init__(self, saved_feature):
-        super(StyleLayer, self).__init__()
-        self.saved_feature = self.convariance_matrix(saved_feature).detach()
-
-    def forward(self, input):
-        c_matrix = self.convariance_matrix(input)
-        self.loss = TF.mse_loss(c_matrix, self.saved_feature)
-        return input
-
-    def convariance_matrix(self,input):
-        '''Cacluate covariance matrix'''
-        b, w, h, c = input.size()  # batch, width, height, channels (RBG)
-        features = input.view(b * w, h * c)  
-        c_matrix = torch.mm(features, features.t())  
-        return c_matrix.div(b * w * h * c)
+from neuralnet.layers import *
+from neuralnet.loss import *
 
 class vgg19(nn.Module):
     def __init__(self):
@@ -151,24 +125,3 @@ class vgg19(nn.Module):
     def forward(self, x,img_type):
         s_loss, c_loss = self.encoder(x,img_type)
         return s_loss,c_loss
-    
-    
-class TVLoss(nn.Module):
-    def __init__(self, TVLoss_weight=1):
-        super(TVLoss,self).__init__()
-
-    def forward(self, x):
-        height = x.size()[2]
-        width = x.size()[3]
-        
-        n_width_next = x[:, :, :, 1:]
-        n_width = x[:, :, :, :width-1]
-
-        n_height_next = x[:, :, 1:, :]
-        n_height = x[:, :, :height-1, :]
-
-        tv_height = torch.sum(torch.abs(n_height_next - n_height), axis=[1, 2, 3])
-        tv_width = torch.sum(torch.abs(n_width_next - n_width), axis=[1, 2, 3])
-
-        tv_loss = torch.mean(tv_height + tv_width)
-        return tv_loss

@@ -72,7 +72,6 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
         if (epoch % 10) == 0:
             logging.info('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
             losses.append(loss.item())
-            print('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
     train_loss /= counter
     result.append((train_loss))
     checkGPU()
