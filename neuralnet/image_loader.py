@@ -55,16 +55,13 @@ def image_loader(image_name, use_mask=False):
         classes = [21, 1, 2, 6, 5, 16, 53, 19, 20]
         
         mask = torch.stack([mask == c for c in classes], axis=0).float()
-        mask = mask.unsqueeze(0)
-        print(mask.shape)
-
-                       
+        mask = mask.unsqueeze(0)                       
     else:
         image = Image.open(image_name)
         image = image_transforms(image)
         image = image.cpu().clone().detach().requires_grad_(False)
         image = image.unsqueeze(0)
-        mask = None
+        mask = torch.ones([1, 1, image.size(0), image.size(1)])
         
     return image, mask
 
