@@ -11,7 +11,7 @@ import yaml
 import logging
 from datetime import datetime
 from pathlib import Path
-
+import logging
 
 def train(config):
     dataset = create_dataset(config)  # create a dataset given config
@@ -64,6 +64,38 @@ def train(config):
 
         logging.info('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, config['n_epochs'] + config['n_epochs_decay'], time.time() - epoch_start_time))
         model.update_learning_rate()                     # update learning rates at the end of every epoch.
+
+def test(config):
+    config['num_threads'] = 0   # test code only supports num_threads = 1
+    config['batch_size'] = 1    # test code only supports batch_size = 1
+    config['serial_batches'] = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
+    config['no_flip'] = True    # no flip; comment this line if results on flipped images are needed.
+    config['display_id'] = -1   # no visdom display; the test code saves the results to a HTML file.
+    dataset = create_dataset(config)  # create a dataset given config['dataset_mode'] and other options
+    model = create_model(config)      # create a model given config['model and other options
+    model.setup(config)               # regular setup: load and print networks; create schedulers
+    # create a website
+    web_dir = os.path.join(config['results_dir'], config['model'], '{}_{}'.format(config['test_phase'], config['epoch']))  # define the website directory
+    if config['load_iter'] > 0:  # load_iter is 0 by default
+        web_dir = '{:s}_iter{:d}'.format(web_dir, config['load_iter'])
+    logging.info('creating web directory', web_dir)
+    webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (config['model'], config['test_phase'], config['epoch']))
+    # test with eval mode. This only affects layers like batchnorm and dropout.
+    # For [pix2pix]: we use batchnorm and dropout in the original pix2pix. You can experiment it with and without eval() mode.
+    # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
+    if config['eval']:
+        model.eval()
+    for i, data in enumerate(dataset):
+        if i >= config['num_test']:  # only apply our model to config['num_test images.
+            break
+        model.set_input(data)  # unpack data from data loader
+        model.test()           # run inference
+        visuals = model.get_current_visuals()  # get image results
+        img_path = model.get_image_paths()     # get image paths
+        if i % 5 == 0:  # save images to an HTML file
+            logging.info('processing (%04d)-th image... %s' % (i, img_path))
+        save_images(webpage, visuals, img_path, aspect_ratio=config['aspect_ratio'], width=config['display_winsize'])
+    webpage.save()  # save the HTML
 
 def load_config(path):
     """

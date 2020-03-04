@@ -79,16 +79,18 @@ num_threads: 4
 ######################################
 # visualizer
 ######################################
-display_id: 1
+display_id: 0
 aspect_ratio: 1
 no_html: False
 display_winsize: 10
 display_server: 'localhost'
-display_port: 8532
+display_port: 8097
 display_env: 'results'
 display_ncols: 5
 display_freq: 400
 
 # test
 results_dir: 'results/'
+eval: true
+test_phase: 'test'
 num_test: 100
