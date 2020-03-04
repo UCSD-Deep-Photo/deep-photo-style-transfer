@@ -228,9 +228,9 @@ class vgg19_new(nn.Module):
             self.model.features[26], # relu
             self.model.features[27], # maxpool
             self.model.features[28], # conv2d 
+            self.model.features[29], # relu
         )
         self.conv5 = nn.Sequential(
-            self.model.features[29], # relu
             self.model.features[30], # conv2d 
             self.model.features[31], # relu
             self.model.features[32], # conv2d 
@@ -238,10 +238,6 @@ class vgg19_new(nn.Module):
             self.model.features[34], # conv2d 
             self.model.features[35], # relu
             self.model.features[36], # maxpool
-        )
-        self.final = nn.Sequential(
-            self.model.avgpool,
-            self.model.classifier
         )
 
     def __call__(self, x, img_type):
@@ -364,9 +360,9 @@ class vgg19_new_fc(nn.Module):
             self.model.features[26], # relu
             self.model.features[27], # maxpool
             self.model.features[28], # conv2d 
+            self.model.features[29], # relu
         )
         self.conv5 = nn.Sequential(
-            self.model.features[29], # relu
             self.model.features[30], # conv2d 
             self.model.features[31], # relu
             self.model.features[32], # conv2d 
@@ -376,8 +372,7 @@ class vgg19_new_fc(nn.Module):
             self.model.features[36], # maxpool
         )
         self.final = nn.Sequential(
-            self.model.avgpool,
-            self.model.classifier
+            self.model.avgpool
         )
 
     def __call__(self, x, img_type):
@@ -438,6 +433,7 @@ class vgg19_new_fc(nn.Module):
             x = self.s_layers[layer].forward(x)
             self.s_loss.append(self.s_layers[layer].loss)
         x = self.conv5(x)
+        x = self.final(x)
 
         return sum(self.s_loss), sum(self.c_loss)
 
@@ -470,7 +466,10 @@ class resnet152(nn.Module):
         )
         self.conv2 = self.model.layer2
         self.conv3 = self.model.layer3
-        self.conv4 = self.model.layer4
+        self.conv4a = self.model.layer4[0] # bottleneck 0
+        self.conv4b = self.model.layer4[1] # bottleneck 1
+        self.conv4c = self.model.layer4[2] # bottleneck 2
+
 
 
     def __call__(self, x, img_type):
@@ -509,16 +508,22 @@ class resnet152(nn.Module):
             self.s_loss.append(self.s_layers[layer].loss)
         x = self.conv3(x)
 
-        # insert style layer @ conv_4
+        # insert style layer @ conv_3
         layer += 1 
         if img_type == 'style': self.s_layers.append(StyleLayer(x))
-        elif img_type == 'content': self.c_layers.append(ContentLayer(x))
+        elif img_type == 'generated': 
+            x = self.s_layers[layer].forward(x)
+            self.s_loss.append(self.s_layers[layer].loss)
+        x = self.conv4a(x)
+        x = self.conv4b(x)
+
+        # insert style layer @ conv_4
+        layer += 1 
+        if img_type == 'content': self.c_layers.append(ContentLayer(x))
         elif img_type == 'generated': 
             x = self.c_layers[0].forward(x)
             self.c_loss.append(self.c_layers[0].loss)
-            x = self.s_layers[layer].forward(x)
-            self.s_loss.append(self.s_layers[layer].loss)
-        x = self.conv4(x)
+        x = self.conv4c(x)
 
         return sum(self.s_loss), sum(self.c_loss)
 
