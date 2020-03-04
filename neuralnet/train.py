@@ -3,12 +3,12 @@ import time
 import torch
 import logging
 import torch.optim as optim
-from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize, plot_losses
+from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize, plot_losses, original_colors
 import numpy as np
 import torch.nn as nn
 from neuralnet.models import TVLoss
 
-def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=1000,early_stop=5,timestamp=''):
+def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  lr=0.05, epochs=1000,early_stop=5,timestamp='',orig_colors=False):
     use_gpu      = next(model.parameters()).is_cuda
     result       = []
     ts           = time.time()
@@ -53,8 +53,10 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     for epoch in range(1,epochs+1):
         if (epoch % 100) == 0 or (epoch == 1):
             padded_epoch = '{0:04}'.format(epoch)
-            #showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) #save img for first and every 100 epochs
-
+            showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) #save img for first and every 100 epochs
+            if orig_colors:
+                generated_img_og = original_colors(generated_img)
+            showImage(generated_img_og,'OG Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) #save img for first and every 100 epochs
 
         if (epoch % 10 == 0) or (epoch == 1):
             img_progress.append(unNormalize(generated_img[0].detach().cpu()))
@@ -78,8 +80,8 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     checkGPU()
     logging.info('Final Loss: {}'.format(loss.item()))
     
-    animate_progress(img_progress, save_file+'_animated')
-    plot_losses(losses, save_file+'_losses')
+    # animate_progress(img_progress, save_file+'_animated')
+    # plot_losses(losses, save_file+'_losses')
     
     return result
 
