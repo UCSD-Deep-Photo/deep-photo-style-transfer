@@ -4,7 +4,7 @@ learning_rate: 1
 early_stop: 5
 
 # Model
-model: 'vgg19'
+model: 'vgg19_new'
 
 # How much to weight the content reconstruction term. 
 alpha: 1
