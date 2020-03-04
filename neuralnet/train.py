@@ -51,18 +51,18 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
 
     
     for epoch in range(1,epochs+1):
-        if (epoch % 100) == 0 or (epoch == 1):
-            padded_epoch = '{0:04}'.format(epoch)
-            showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) #save img for first and every 100 epochs
-            if orig_colors:
-                generated_img_og = original_colors(generated_img)
-            showImage(generated_img_og,'OG Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) #save img for first and every 100 epochs
+        # if (epoch % 100) == 0 or (epoch == 1):
+        #     padded_epoch = '{0:04}'.format(epoch)
+        #     showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) #save img for first and every 100 epochs
 
         if (epoch % 10 == 0) or (epoch == 1):
-            img_progress.append(unNormalize(generated_img[0].detach().cpu()))
+            if orig_colors:
+                g_img_with_orig_color = original_colors(generated_img, content_img, use_gpu)
+                img_progress.append(g_img_with_orig_color[0])
+            else: 
+                img_progress.append(unNormalize(generated_img[0].detach().cpu()))
 
         optimizer.zero_grad()    
-
         s_loss, c_loss = model(generated_img, img_type='generated')
         tv_loss = tv(generated_img)
         loss = (alpha * c_loss) + (beta * s_loss) + (0.0001 * tv_loss)
@@ -77,11 +77,12 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
             print('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
     train_loss /= counter
     result.append((train_loss))
-    checkGPU()
     logging.info('Final Loss: {}'.format(loss.item()))
+    if use_gpu:
+        checkGPU()
     
-    # animate_progress(img_progress, save_file+'_animated')
-    # plot_losses(losses, save_file+'_losses')
+    animate_progress(img_progress, save_file+'_animated')
+    plot_losses(losses, save_file+'_losses')
     
     return result
 

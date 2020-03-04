@@ -63,22 +63,27 @@ def plot_losses(losses, save_file, title='Loss over Epochs'):
     fig.savefig('out/' + save_file + '.png')
 
 
-def original_colors(content_image, generated_img):
+def original_colors(generated_img,content_img,use_gpu):
     '''Replaces generate image colors with original content image colors'''
 
     # From RGB to YUV color space
-    c_img = content_image.squeeze(0)
-    c_yuv = rgb2yuv(np.transpose(c_img,(1,2,0)))
+    if use_gpu:
+        c_img = content_img.squeeze(0).cpu().clone().detach().permute(1,2,0)
+        g_img = generated_img.squeeze(0).cpu().clone().detach().permute(1,2,0)
+    else:
+        c_img = content_img.squeeze(0).detach().permute(1,2,0)
+        g_img = generated_img.squeeze(0).detach().permute(1,2,0)
 
-    g_img = generated_img.squeeze(0)
-    g_yuv = rgb2yuv(np.transpose(g_img,(1,2,0)))
+    c_yuv = rgb2yuv(c_img)
+    g_yuv = rgb2yuv(g_img)
 
-    g_yuv[:,:,0] = c_yuv[:,:,0] # swap color, keep greyscale
+    # Invert and swap colors, keep greyscale
+    if not torch.all(torch.eq(c_img,g_img)): # ensure this is not done on init image
+        g_yuv = np.multiply(g_yuv,-1)
+    c_yuv[:,:,0] = g_yuv[:,:,0] 
 
     # Back to RGB color space
-    g_rgb = yuv2rgb(g_yuv)
-    orig_color_img = torch.from_numpy(g_rgb).permute(2,0,1).unsqueeze(0)
-    showImage(orig_color_img)
+    g_rgb2 = yuv2rgb(c_yuv)
+    orig_color_img = torch.from_numpy(g_rgb2).permute(2,0,1).unsqueeze(0)
 
     return orig_color_img
-    

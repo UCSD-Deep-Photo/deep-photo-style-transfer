@@ -1,5 +1,5 @@
 # Hyperparameters
-train_epoch: 1000
+train_epoch: 100
 learning_rate: 1
 early_stop: 5
 
