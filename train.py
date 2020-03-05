@@ -2,10 +2,12 @@
 This file is copied and customized from CycleGAN GitHub repo:
 https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/train.py
 """
+import os
+from gans.util import html
 import time
 from gans.dataset import create_dataset
 from gans.models import create_model
-from gans.util.visualizer import Visualizer
+from gans.util.visualizer import Visualizer, save_images
 import argparse
 import yaml
 import logging
@@ -66,6 +68,7 @@ def train(config):
         model.update_learning_rate()                     # update learning rates at the end of every epoch.
 
 def test(config):
+    config['isTrain'] = False
     config['num_threads'] = 0   # test code only supports num_threads = 1
     config['batch_size'] = 1    # test code only supports batch_size = 1
     config['serial_batches'] = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
@@ -78,7 +81,7 @@ def test(config):
     web_dir = os.path.join(config['results_dir'], config['model'], '{}_{}'.format(config['test_phase'], config['epoch']))  # define the website directory
     if config['load_iter'] > 0:  # load_iter is 0 by default
         web_dir = '{:s}_iter{:d}'.format(web_dir, config['load_iter'])
-    logging.info('creating web directory', web_dir)
+    logging.info('creating web directory {}'.format(web_dir))
     webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (config['model'], config['test_phase'], config['epoch']))
     # test with eval mode. This only affects layers like batchnorm and dropout.
     # For [pix2pix]: we use batchnorm and dropout in the original pix2pix. You can experiment it with and without eval() mode.
@@ -117,8 +120,11 @@ def load_config(path):
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Train our GAN')
     parser.add_argument('-c', '--config', required=True, help='config file path')
-    parser.add_argument('--test', nargs='?', help='test model')
+    parser.add_argument('--test', dest='test', help='test model', action='store_true')
     args = parser.parse_args()
     config = load_config(args.config)
 
-    train(config)
+    if args.test:
+        test(config)
+    else:
+        train(config)

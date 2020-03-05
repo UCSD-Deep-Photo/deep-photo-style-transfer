@@ -6,11 +6,11 @@ gpu_ids:
     - 0
 isTrain: True
 checkpoints_dir: 'checkpoints/'
-lr: 0.2
+lr: 0.0002
 continue_train: False
 load_iter: 0
 epoch_count: 0
-
+epoch: 5
 # the type of GAN objective. [vanilla| lsgan | wgangp]. vanilla GAN loss is the cross-entropy objective used in the original GAN paper.
 gan_mode: 'vanilla'
 n_layers_D: 3
