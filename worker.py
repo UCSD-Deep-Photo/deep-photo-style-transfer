@@ -6,6 +6,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import neuralnet.models
+import numpy as np
 from neuralnet.image_loader import image_loader, generate_image
 from neuralnet.train import train
 
@@ -38,25 +39,28 @@ def load_config():
 
     return config
 
-def model_loader(config):
+def model_loader(config, content_mask, style_mask):
     """
     Loads new model
     """
-    return getattr(neuralnet.models, config['model'])()
+    return getattr(neuralnet.models, config['model'])(content_mask, style_mask)
 
 def main():
     """
     Main
     """
     config = load_config()
+    use_mask = config['use_mask']
+    
+    # Load images, masks
+    content_img, content_mask   = image_loader(config['content_image'], use_mask)
+    style_img, style_mask       = image_loader(config['style_image'], use_mask)
+    generated_img = generate_image(content_img, config['generate_image'])
+    
 
     # Load Model
-    model = model_loader(config)
+    model = model_loader(config, content_mask, style_mask)
 
-    # Load images
-    content_img   = image_loader(config['content_image'])
-    style_img     = image_loader(config['style_image'])
-    generated_img = generate_image(content_img, config['generate_image'])
 
     # Use GPU, if available
     use_gpu = torch.cuda.is_available()
@@ -65,7 +69,7 @@ def main():
         model = model.cuda()
     else:
         logging.info("Using only CPU for training.")
-
+        
     # Train    
     train(
         model, 
@@ -75,6 +79,7 @@ def main():
         config['save_file'], 
         alpha=config['alpha'], 
         beta=config['beta'], 
+        gamma=config['gamma'],
         lr=config['learning_rate'],
         epochs=config['train_epoch'],
         early_stop=config['early_stop'],
