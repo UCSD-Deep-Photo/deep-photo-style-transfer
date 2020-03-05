@@ -5,9 +5,9 @@
 orig_code_annotated.lua
 orig_code.lua
 
-# Ignore all output files, but keep readme so git includes "/out" folder
+# Ignore all output files, but keep .gitkeep so git includes "/out" folder
 out/*
-!out/README.md
+!out/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

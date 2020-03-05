@@ -4,7 +4,7 @@ learning_rate: 1
 early_stop: 5
 
 # Model
-model: 'vgg19'
+model: 'vgg19_new_fc'
 
 # How much to weight the content reconstruction term. 
 alpha: 1
@@ -19,11 +19,6 @@ original_colors: False
 # Images to blend:
 content_image: './data/landscapes/landscape2.jpg'
 style_image: './data/landscapes/landscape1.jpg'
-gamma: 0.0001
-
-style_image: './data/seg_test/landscape1.jpg'
-
-use_mask: False
 
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)

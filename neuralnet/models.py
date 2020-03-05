@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as TF
 import torch.nn.functional as F
 from pycocotools.coco import COCO
 from torchvision import datasets, models, transforms
@@ -17,7 +16,7 @@ class ContentLayer(nn.Module):
         self.saved_feature = saved_feature.detach()
 
     def forward(self, input):
-        self.loss = TF.mse_loss(input, self.saved_feature)
+        self.loss = F.mse_loss(input, self.saved_feature)
         return input
 
 class StyleLayer(nn.Module):

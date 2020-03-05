@@ -83,7 +83,8 @@ def main():
         lr=config['learning_rate'],
         epochs=config['train_epoch'],
         early_stop=config['early_stop'],
-        timestamp=config['timestamp']
+        timestamp=config['timestamp'],
+        #orig_colors=config['original_colors']
     )
     
     logging.info("Worker completed!")
