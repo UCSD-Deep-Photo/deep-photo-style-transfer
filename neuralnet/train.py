@@ -56,7 +56,16 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
             #save img for first and every 100 epochs
             showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
 
-        if (epoch % 10 == 0) or (epoch == 1):
+        if epoch <= 50:
+            save_int = 1
+        elif epoch <= 100:
+            save_int = 5
+        elif epoch <= 500:
+            save_int = 10
+        else:
+            save_int = 50
+            
+        if (epoch % save_int == 0) or (epoch == 1):
             img_progress.append(unNormalize(generated_img[0].detach().cpu()))
 
         optimizer.zero_grad()    
