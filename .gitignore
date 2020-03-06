@@ -1,12 +1,16 @@
 # Damn you, Apple!
 .DS_Store
 
+data/*2*
+munit_outputs/
 # Original code
 orig_code_annotated.lua
 orig_code.lua
 
 # Ignore all output files, but keep .gitkeep so git includes "/out" folder
+results/*
 out/*
+checkpoints/*
 !out/.gitkeep
 
 # Byte-compiled / optimized / DLL files
