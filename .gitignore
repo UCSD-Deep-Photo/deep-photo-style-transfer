@@ -1,8 +1,8 @@
 # Damn you, Apple!
 .DS_Store
 
-data/monet2photo
-
+data/*2*
+munit_outputs/
 # Original code
 orig_code_annotated.lua
 orig_code.lua
