@@ -6,7 +6,7 @@ from PIL import Image
 
 def image_transforms(image):
     img_transforms = transforms.Compose([
-        transforms.Resize(512), # Only this small for training
+        transforms.Resize(32), # Only this small for training
         #transforms.CenterCrop(512),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225))

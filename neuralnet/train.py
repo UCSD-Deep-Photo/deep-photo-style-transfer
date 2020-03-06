@@ -66,7 +66,11 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
             save_int = 50
             
         if (epoch % save_int == 0) or (epoch == 1):
-            img_progress.append(unNormalize(generated_img[0].detach().cpu()))
+            if orig_colors:
+                g_img_with_orig_color = original_colors(generated_img, content_img, use_gpu)
+                img_progress.append(g_img_with_orig_color[0])
+            else: 
+                img_progress.append(unNormalize(generated_img[0].detach().cpu()))
 
         optimizer.zero_grad()    
 
