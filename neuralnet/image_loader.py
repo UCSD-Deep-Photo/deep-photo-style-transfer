@@ -42,7 +42,7 @@ def mask_and_image_transforms(image, mask):
     return img_transforms(image.squeeze(0)).float(), mask.int().squeeze()
 
 
-def image_loader(image_name, use_mask=False):
+def load_image(image_name, use_mask=False):
     if use_mask:
         mask_name = image_name[:len(image_name) - 4] + ".npy"
         mask = np.load(mask_name)

@@ -92,4 +92,3 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     plot_losses(losses, save_file+'_losses')
     
     return result
-

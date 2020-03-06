@@ -1,0 +1,96 @@
+######################################
+# general hyperparams
+######################################
+model: 'cycle_gan'
+gpu_ids:
+    - 0
+isTrain: True
+checkpoints_dir: 'checkpoints/'
+lr: 0.0002
+continue_train: False
+load_iter: 0
+epoch_count: 0
+epoch: 5
+# the type of GAN objective. [vanilla| lsgan | wgangp]. vanilla GAN loss is the cross-entropy objective used in the original GAN paper.
+gan_mode: 'vanilla'
+n_layers_D: 3
+######################################
+# model-specific hyperparameters
+######################################
+direction: 'AtoB'
+lambda_A: 10
+lambda_B: 10
+lambda_identity: 0.5
+netG: 'resnet_9blocks'
+netD: 'basic'
+# input channels
+input_nc: 3
+# output channels
+output_nc: 3
+# num of gen filters in the last conv layer
+ngf: 64
+# num of discrim filters in the last conv layer
+ndf: 64
+norm: 'instance'
+# network initialization [normal | xavier | kaiming | orthogonal]
+init_type: 'xavier'
+# scaling factor for normal, xavier and orthogonal
+init_gain: 0.02
+no_dropout: true
+
+# the size of image buffer that stores previously generated images
+pool_size: 50
+# beta1
+beta1: 0.5
+
+
+######################################
+# scheduler
+######################################
+lr_policy: 'linear'
+n_epochs: 100
+n_epochs_decay: 100
+lr_decay_iters: 100
+
+# freq
+print_freq: 1000
+update_html_freq: 1000
+save_epoch_freq: 5
+save_latest_freq: 5000
+
+######################################
+# dataset 
+######################################
+
+# chooses how datasets are loaded. [unaligned | aligned | single | colorization]
+dataset_mode: 'unaligned'
+phase: 'train'
+dataroot: 'data/monet2photo'
+load_size: 512
+crop_size: 256
+max_dataset_size: 999999
+preprocess: 'resize_and_crop'
+no_flip: True
+
+batch_size: 2
+serial_batches: False
+num_threads: 4
+
+######################################
+# visualizer
+######################################
+display_id: 0
+aspect_ratio: 1
+no_html: False
+display_winsize: 10
+display_server: 'localhost'
+display_port: 8097
+display_env: 'results'
+display_ncols: 5
+display_freq: 400
+
+# test
+results_dir: 'results/'
+eval: true
+test_phase: 'test'
+num_test: 100

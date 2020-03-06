@@ -6,8 +6,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import neuralnet.models
-import numpy as np
-from neuralnet.image_loader import image_loader, generate_image
+from neuralnet.image_loader import *
 from neuralnet.train import train
 
 def load_config():
@@ -53,8 +52,8 @@ def main():
     use_mask = config['use_mask']
     
     # Load images, masks
-    content_img, content_mask   = image_loader(config['content_image'], use_mask)
-    style_img, style_mask       = image_loader(config['style_image'], use_mask)
+    content_img, content_mask   = load_image(config['content_image'], use_mask)
+    style_img, style_mask       = load_image(config['style_image'], use_mask)
     generated_img = generate_image(content_img, config['generate_image'])
     
 
