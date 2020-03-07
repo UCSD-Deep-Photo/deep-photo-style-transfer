@@ -1,5 +1,5 @@
 # Hyperparameters
-train_epoch: 500
+train_epoch: 2000
 learning_rate: 0.2
 early_stop: 5
 
@@ -27,3 +27,6 @@ style_mask: './data/seg_test/landscape1.npy'
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)
 generate_image: False
+
+# Show original content image colors on top of generated image
+original_colors: False

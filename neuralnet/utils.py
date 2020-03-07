@@ -80,7 +80,7 @@ def original_colors(generated_img,content_img,use_gpu):
 
     # Invert and swap colors, keep greyscale
     if not torch.all(torch.eq(c_img,g_img)): # ensure this is not done on init image
-        g_yuv = np.multiply(g_yuv,-1)
+        g_yuv = np.multiply(g_yuv,1)
     c_yuv[:,:,0] = g_yuv[:,:,0] 
 
     # Back to RGB color space
