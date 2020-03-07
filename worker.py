@@ -32,6 +32,7 @@ def load_config():
     logging.info("Configuration file: {}".format(args.config))
     logging.info("Using model {}".format(config['model']))
     logging.info("Image Segmentation: {}".format(config['use_mask']))
+    logging.info("LBFGS: {}".format(config['lbfgs']))
     logging.info("Original Colors: {}".format(config['original_colors']))
     logging.info("Alpha: {}, Beta: {}, Gamma: {}".format(config['alpha'],config['beta'],config['gamma']))
     logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['train_epoch'],
