@@ -1,5 +1,5 @@
 # Hyperparameters
-train_epoch: 500
+train_epoch: 2000
 learning_rate: 0.2
 early_stop: 5
 
@@ -17,13 +17,14 @@ gamma: 0.00001
 
 # Images to blend:
 # content_image: './data/luke_images/content/building_11c.jpeg'
-content_image: './data/seg_test/landscape2.jpg'
-style_image: './data/seg_test/landscape1.jpg'
+content_image: './data/seg_test/luke_2c_small.jpeg'
+style_image: './data/seg_test/art7.jpg'
 
+# Use segmentaion mask (read README.md for instructions)
 use_mask: True
-content_mask: './data/seg_test/landscape2.npy'
-style_mask: './data/seg_test/landscape1.npy'
 
+# Use LBFGS optimizer instead of Adam (LBFGS takes more time and memory but produces sharper images)
+lbfgs : False
 
 # Generate Image: 
 # true = start with generated pink noise || false = start with content image (use this for faster results)

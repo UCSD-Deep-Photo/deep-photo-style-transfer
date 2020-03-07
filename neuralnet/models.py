@@ -137,9 +137,9 @@ class vgg19(nn.Module):
 """
 VGG with shifted layers
 """
-class vgg19_new(nn.Module):
+class vgg19_shifted(nn.Module):
     def __init__(self, content_mask=None, style_mask=None):
-        super(vgg19_new, self).__init__()
+        super(vgg19_shifted, self).__init__()
 
         # Initialize model
         self.model = models.vgg19(pretrained=True)

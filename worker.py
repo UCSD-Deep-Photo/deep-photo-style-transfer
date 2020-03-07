@@ -31,6 +31,9 @@ def load_config():
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logging.info("Configuration file: {}".format(args.config))
     logging.info("Using model {}".format(config['model']))
+    logging.info("Image Segmentation: {}".format(config['use_mask']))
+    logging.info("Original Colors: {}".format(config['original_colors']))
+    logging.info("Alpha: {}, Beta: {}, Gamma: {}".format(config['alpha'],config['beta'],config['gamma']))
     logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['train_epoch'],
                                                                                             config['learning_rate'], 
                                                                                             config['content_image'], 
@@ -83,7 +86,8 @@ def main():
         epochs=config['train_epoch'],
         early_stop=config['early_stop'],
         timestamp=config['timestamp'],
-        orig_colors=config['original_colors']
+        orig_colors=config['original_colors'],
+        LBFGS=config['lbfgs']
     )
     
     logging.info("Worker completed!")

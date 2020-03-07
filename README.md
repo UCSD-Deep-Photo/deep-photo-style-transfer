@@ -6,6 +6,7 @@
 
 ## Image Segmentation
 1. Copy the image you want segmented into `/data/seg_test`
-2. cd to `/semantic-segmentation-pytorch` and run `demo_test.sh`
+2. cd to `/semantic-segmentation-pytorch` and run `./demo_test.sh` -- note: `.jpeg` images but have `.jpg` file extension. 
 3. If the GPU runs out of memory, you'll need to crop the image yourself (~2000px seems to work)
-4. Run the model with `use_mask: True` in config. 
+4. Change style and content images in the content file to match the image you want to use in `/data/seg_test`
+5. Run the model with `use_mask: True` in config. 
