@@ -31,6 +31,10 @@ def load_config():
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logging.info("Configuration file: {}".format(args.config))
     logging.info("Using model {}".format(config['model']))
+    logging.info("Image Segmentation: {}".format(config['use_mask']))
+    logging.info("LBFGS: {}".format(config['lbfgs']))
+    logging.info("Original Colors: {}".format(config['original_colors']))
+    logging.info("Alpha: {}, Beta: {}, Gamma: {}".format(config['alpha'],config['beta'],config['gamma']))
     logging.info("Epochs: {}, Learning rate: {}, Content Image: {}, Style Image: {}".format(config['train_epoch'],
                                                                                             config['learning_rate'], 
                                                                                             config['content_image'], 
@@ -38,25 +42,28 @@ def load_config():
 
     return config
 
-def model_loader(config):
+def model_loader(config, content_mask, style_mask):
     """
     Loads new model
     """
-    return getattr(neuralnet.models, config['model'])()
+    return getattr(neuralnet.models, config['model'])(content_mask, style_mask)
 
 def main():
     """
     Main
     """
     config = load_config()
+    use_mask = config['use_mask']
+    
+    # Load images, masks
+    content_img, content_mask   = load_image(config['content_image'], use_mask)
+    style_img, style_mask       = load_image(config['style_image'], use_mask)
+    generated_img = generate_image(content_img, config['generate_image'])
+    
 
     # Load Model
-    model = model_loader(config)
+    model = model_loader(config, content_mask, style_mask)
 
-    # Load images
-    content_img   = load_image(config['content_image'])
-    style_img     = load_image(config['style_image'])
-    generated_img = generate_image(content_img, config['generate_image'])
 
     # Use GPU, if available
     use_gpu = torch.cuda.is_available()
@@ -65,7 +72,7 @@ def main():
         model = model.cuda()
     else:
         logging.info("Using only CPU for training.")
-
+        
     # Train    
     train(
         model, 
@@ -75,10 +82,13 @@ def main():
         config['save_file'], 
         alpha=config['alpha'], 
         beta=config['beta'], 
+        gamma=config['gamma'],
         lr=config['learning_rate'],
         epochs=config['train_epoch'],
         early_stop=config['early_stop'],
-        timestamp=config['timestamp']
+        timestamp=config['timestamp'],
+        orig_colors=config['original_colors'],
+        LBFGS=config['lbfgs']
     )
     
     logging.info("Worker completed!")

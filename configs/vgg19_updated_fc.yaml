@@ -1,0 +1,25 @@
+# Hyperparameters
+train_epoch: 3000
+learning_rate: 1
+early_stop: 5
+
+# Model
+model: 'vgg19_new_fc'
+
+# How much to weight the content reconstruction term. 
+alpha: 1
+
+# How much to weight the style reconstruction term. 
+beta: 500000
+
+# Original colors 
+# True = output image will keep the colors of the content image
+original_colors: False
+
+# Images to blend:
+content_image: './data/landscapes/landscape2.jpg'
+style_image: './data/landscapes/landscape1.jpg'
+
+# Generate Image: 
+# true = start with generated pink noise || false = start with content image (use this for faster results)
+generate_image: False

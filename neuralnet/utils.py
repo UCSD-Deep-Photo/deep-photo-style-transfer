@@ -6,6 +6,9 @@ from datetime import datetime
 from torchvision import transforms
 from matplotlib import pyplot as plt
 
+from PIL import Image
+from skimage.color import rgb2yuv, yuv2rgb
+
 import numpy as np
 import matplotlib.animation as animation
 from IPython.display import HTML
@@ -59,5 +62,22 @@ def plot_losses(losses, save_file, title='Loss over Epochs'):
     ax.plot(losses)
     ax.set(xlabel='epoch', ylabel='loss', title=title)
     fig.savefig('out/' + save_file + '.png')
-   
-    
+
+
+def original_colors(generated_img,content_img,use_gpu):
+    '''Replaces generate image colors with original content image colors'''
+    # From RGB to YUV color space
+    content_img = unNormalize(content_img[0].cpu().clone().detach()).permute(1,2,0)
+    generated_img = unNormalize(generated_img[0].cpu().clone().detach()).permute(1,2,0)
+
+    c_yuv = rgb2yuv(content_img)
+    g_yuv = rgb2yuv(generated_img)
+
+    # Swap colors, keep greyscale
+    c_yuv[:,:,0] = g_yuv[:,:,0] 
+
+    # Back to RGB color space
+    g_rgb = yuv2rgb(c_yuv)
+    orig_color_img = torch.from_numpy(g_rgb).permute(2,0,1).unsqueeze(0)
+
+    return orig_color_img
