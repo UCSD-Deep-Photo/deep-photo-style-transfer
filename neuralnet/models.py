@@ -135,7 +135,8 @@ class vgg19(nn.Module):
         return s_loss,c_loss
 
 """
-VGG with shifted layers
+VGG with shifted layers and ave pooling
+Note: this model typically needs larger values for beta (x100 to x1000) compared to the original model
 """
 class vgg19_shifted(nn.Module):
     def __init__(self, content_mask=None, style_mask=None):
@@ -153,6 +154,7 @@ class vgg19_shifted(nn.Module):
         
         self.content_mask = content_mask
         self.style_mask = content_mask
+        self.avepool = nn.AvgPool2d(kernel_size=2, stride=2, padding=1, ceil_mode=False)
         
         if self.content_mask is not None:
             self.content_mask = torch.Tensor(self.content_mask).cuda()
@@ -166,14 +168,16 @@ class vgg19_shifted(nn.Module):
         self.conv1 = nn.Sequential(
             self.model.features[2], # conv2d
             self.model.features[3], # relu
-            self.model.features[4], # maxpool
+            self.avepool,
+            # self.model.features[4], # maxpool
             self.model.features[5], # conv2d
             self.model.features[6], # relu
         )
         self.conv2 = nn.Sequential(
             self.model.features[7], # conv2d
             self.model.features[8], # relu
-            self.model.features[9], # maxpool
+            self.avepool,
+            # self.model.features[9], # maxpool
             self.model.features[10], # conv2d  
             self.model.features[11], # relu 
         )
@@ -184,7 +188,8 @@ class vgg19_shifted(nn.Module):
             self.model.features[15], # relu 
             self.model.features[16], # conv2d  
             self.model.features[17], # relu 
-            self.model.features[18], # maxpool
+            self.avepool,
+            # self.model.features[18], # maxpool
             self.model.features[19], # conv2d 
             self.model.features[20], # relu
         )
@@ -197,7 +202,8 @@ class vgg19_shifted(nn.Module):
             self.model.features[24], # relu
             self.model.features[25], # conv2d 
             self.model.features[26], # relu
-            self.model.features[27], # maxpool
+            self.avepool,
+            # self.model.features[27], # maxpool
             self.model.features[28], # conv2d 
             self.model.features[29], # relu
         )
@@ -208,7 +214,8 @@ class vgg19_shifted(nn.Module):
             self.model.features[33], # relu
             self.model.features[34], # conv2d 
             self.model.features[35], # relu
-            self.model.features[36], # maxpool
+            self.avepool,
+            # self.model.features[36], # maxpool
         )
 
     def __call__(self, x, img_type):
@@ -275,3 +282,96 @@ class vgg19_shifted(nn.Module):
     def forward(self, x,img_type):
         s_loss, c_loss = self.encoder(x,img_type)
         return s_loss,c_loss
+
+
+
+"""
+ResNet50 - Wide
+"""
+class resnet50wide(nn.Module):
+    def __init__(self, content_mask=None, style_mask=None):
+        super(resnet50wide, self).__init__()
+
+        # Initialize model
+        self.model = models.wide_resnet50_2(pretrained=True)
+
+        # Freeze the weights
+        for param in self.model.parameters():
+            param.requires_grad = False
+
+        self.content_mask = content_mask.cuda()
+        self.style_mask = content_mask.cuda()
+
+        self.c_loss, self.c_layers = [],[]
+        self.s_loss, self.s_layers = [],[]
+
+        self.conv0 = nn.Sequential(
+            self.model.conv1,
+            self.model.bn1,
+            self.model.relu
+        ).cuda()
+        self.conv1 = nn.Sequential(
+            self.model.maxpool,
+            self.model.layer1
+        ).cuda()
+        self.conv2 = self.model.layer2.cuda()
+        self.conv3 = self.model.layer3.cuda()
+        self.conv4 = self.model.layer4.cuda()
+
+
+
+    def __call__(self, x, img_type):
+        ''' Make Model callable with default set to forward()'''
+        return self.forward(x, img_type)
+
+    def encoder(self, x, img_type='generated'):
+        # Reset loss for each fwd pass:
+        self.s_loss = []
+        self.c_loss = []
+
+        # first conv layer
+        x = self.conv0(x)
+
+        # insert style layer @ conv_1
+        layer = 0
+        if img_type == 'style': self.s_layers.append(StyleLayer(x,self.content_mask, self.style_mask))
+        elif img_type == 'generated':
+            x = self.s_layers[layer].forward(x).cuda()
+            self.s_loss.append(self.s_layers[layer].loss)
+        x = self.conv1(x)
+
+        # insert style layer @ conv_2
+        layer += 1
+        if img_type == 'style': self.s_layers.append(StyleLayer(x,self.content_mask, self.style_mask))
+        elif img_type == 'generated':
+            x = self.s_layers[layer].forward(x).cuda()
+            self.s_loss.append(self.s_layers[layer].loss)
+        x = self.conv2(x)
+
+        # insert style layer @ conv_3
+        layer += 1
+        if img_type == 'style': self.s_layers.append(StyleLayer(x,self.content_mask, self.style_mask))
+        elif img_type == 'generated':
+            x = self.s_layers[layer].forward(x).cuda()
+            self.s_loss.append(self.s_layers[layer].loss)
+        x = self.conv3(x)
+
+        # insert style layer @ conv_3
+        layer += 1
+        if img_type == 'style': self.s_layers.append(StyleLayer(x,self.content_mask, self.style_mask))
+        elif img_type == 'content': self.c_layers.append(ContentLayer(x))
+        elif img_type == 'generated':
+            # C
+            x = self.c_layers[0].forward(x).cuda()
+            self.c_loss.append(self.c_layers[0].loss)
+            # S
+            x = self.s_layers[layer].forward(x).cuda()
+            self.s_loss.append(self.s_layers[layer].loss)
+        x = self.conv4(x)
+
+        return sum(self.s_loss), sum(self.c_loss)
+
+    def forward(self, x,img_type):
+        s_loss, c_loss = self.encoder(x,img_type)
+        return s_loss,c_loss
+

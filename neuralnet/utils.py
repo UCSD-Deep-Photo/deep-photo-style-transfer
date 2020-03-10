@@ -47,8 +47,10 @@ def animate_progress(img_progress, save_file):
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=10, metadata=dict(artist='Me'), bitrate=1800)
     
-    fig = plt.figure(figsize=(10,10))
-    plt.axis("off")
+    fig = plt.figure(figsize=(10,10),frameon=False)
+    fig.patch.set_visible(False)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis('off')
     ims = [[plt.imshow(np.transpose(i,(1,2,0)), animated=True)] for i in img_progress]
     ani = animation.ArtistAnimation(fig, ims, blit=True)
 

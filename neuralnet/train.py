@@ -92,6 +92,6 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     logging.info('Final Loss: {}'.format(loss.item()))
     
     animate_progress(img_progress, timestamp+'_'+save_file+'_animated')
-    plot_losses(losses, save_file+'_losses')
+    plot_losses(losses, timestamp+'_'+save_file+'_losses')
     
     return result
