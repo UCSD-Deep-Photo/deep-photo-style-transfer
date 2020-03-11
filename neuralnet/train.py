@@ -27,12 +27,14 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     """
     logging.info('Initializing Content Features.')
     _, _ = model(content_img,img_type='content')
+    showImage(content_img,'Content Image',(timestamp + '_content' + '_' + save_file))
 
     """
     Init style features 
     """
     logging.info('Initializing Style Features.')
     _, _ = model(style_img,img_type='style')
+    showImage(style_img,'Style Image',(timestamp + '_style' + '_' + save_file))              
     
     """
     Generate Image
@@ -86,12 +88,30 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
             logging.info('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
             print('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
             losses.append(loss.item())
+            
+        if (epoch == 3000):
+            padded_epoch = '{0:04}'.format(epoch)
+            
+            if orig_colors:
+                g_img_with_orig_color = original_colors(generated_img, content_img, use_gpu)
+                showImage(g_img_with_orig_color,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
+            else: 
+                showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch)))  
 
     train_loss /= counter
     result.append((train_loss))
     logging.info('Final Loss: {}'.format(loss.item()))
     
+    # save final output image
+    padded_epoch = '{0:04}'.format(epoch)
+    if orig_colors:
+        g_img_with_orig_color = original_colors(generated_img, content_img, use_gpu)
+        showImage(g_img_with_orig_color,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
+    else: 
+        showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
+    
     animate_progress(img_progress, timestamp+'_'+save_file+'_animated')
     plot_losses(losses, save_file+'_losses')
+    
     
     return result

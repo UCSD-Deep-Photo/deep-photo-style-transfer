@@ -24,14 +24,35 @@ def showImage(x, title='Image', save_file=False):
     img = x[0].cpu().clone().detach() # get first image in batch and make a copy
     img = unNormalize(img)
     plt.title(title)
+    
     #plt.imshow(transforms.ToPILImage()(img))
-    plt.imshow(np.transpose(img,(1,2,0)))
-    if save_file:
-        if not os.path.exists('out'):
-	        os.makedirs('out')
-        plt.savefig(('out/' + save_file + '.png'))
-    else:
-        plt.show() 
+    transpose_im = np.transpose(img,(1,2,0))
+    
+    fig = plt.figure(frameon=False)
+    ax = plt.Axes(fig, [0.,0.,1.,1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(transpose_im)
+    fig.savefig('out/fig_'+save_file+'.jpeg', dpi=300)
+
+    plt.imshow(transpose_im)
+#     if save_file:
+#         if not os.path.exists('out'):
+# 	        os.makedirs('out')
+#         plt.savefig(('out/' + save_file + '.png'))
+#     else:
+#         plt.show() 
+        
+    
+#     #plt.imshow(transforms.ToPILImage()(img))
+#     plt.imshow(np.transpose(img,(1,2,0)))
+#     if save_file:
+#         if not os.path.exists('out'):
+# 	        os.makedirs('out')
+#         plt.savefig(('out/' + save_file + '.png'))
+#     else:
+#         plt.show() 
+
     del img 
 
 def unNormalize(x):
