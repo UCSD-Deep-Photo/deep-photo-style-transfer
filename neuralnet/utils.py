@@ -19,12 +19,12 @@ def checkGPU():
                 round(torch.cuda.memory_allocated()/1024/1024/1024, 5), 
                 round(torch.cuda.max_memory_allocated()/1024/1024/1024, 5)))
 
-def showImage(x, title='Image', save_file=False):
+def showImage(x, title='Image', save_file=False, orig_color=False):
     '''Function to visualize images'''
     img = x[0].cpu().clone().detach() # get first image in batch and make a copy
-    img = unNormalize(img)
+    if not orig_color:
+        img = unNormalize(img)
     plt.title(title)
-    #plt.imshow(transforms.ToPILImage()(img))
     plt.imshow(np.transpose(img,(1,2,0)))
     if save_file:
         if not os.path.exists('out'):

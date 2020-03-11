@@ -51,14 +51,14 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     for epoch in range(1,epochs+1):
         ts = time.time()
 
-        # For testing: save image every 100 epochs
-        # if (epoch % 100) == 0 or (epoch == 1):
+        # For testing: save image every X epochs
+        # if (epoch % 50) == 0 or (epoch == 1):
         #     padded_epoch = '{0:04}'.format(epoch)
         #     if orig_colors:
         #         g_img_with_orig_color = original_colors(generated_img, content_img, use_gpu)
-        #         showImage(g_img_with_orig_color,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
+        #         showImage(g_img_with_orig_color,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch)),orig_colors) 
         #     else: 
-        #         showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch))) 
+        #         showImage(generated_img,'Generated Image',(timestamp + '_' + save_file + '_e' + str(padded_epoch)))
 
         if epoch <= 50:
             save_int = 1
