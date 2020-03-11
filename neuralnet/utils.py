@@ -12,6 +12,7 @@ from skimage.color import rgb2yuv, yuv2rgb
 import numpy as np
 import matplotlib.animation as animation
 from IPython.display import HTML
+from PIL import Image
 
 def checkGPU():
     logging.info("GPU Usage - cached:{}/{} GB, allocated:{}/{} GB".format(round(torch.cuda.memory_cached()/1024/1024/1024,5), 
@@ -25,13 +26,31 @@ def showImage(x, title='Image', save_file=False, orig_color=False):
     if not orig_color:
         img = unNormalize(img)
     plt.title(title)
-    plt.imshow(np.transpose(img,(1,2,0)))
+    transpose_im = np.transpose(img,(1,2,0))
+    
+    fig = plt.figure(frameon=False)
+    ax = plt.Axes(fig, [0.,0.,1.,1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(transpose_im, aspect='auto')
+    fig.savefig('out/fig_'+save_file+'.jpeg')
+
+    plt.imshow(transpose_im)
     if save_file:
         if not os.path.exists('out'):
 	        os.makedirs('out')
         plt.savefig(('out/' + save_file + '.png'))
     else:
         plt.show() 
+        
+#     fig = plt.figure()
+#     fig.canvas.draw()
+#     w,h = fig.canvas.get_width_height()
+#     buf = np.fromstring(fig.canvas.tostring_argb(),dtype=np.uint8)
+#     buf.shape = (w,h,4)
+#     pil_im = Image.frombytes("RGBA", (w,h), buf.tostring())
+#     pil_im.save('out/pil_'+save_file+'.png')    
+
     del img 
 
 def unNormalize(x):
@@ -83,3 +102,25 @@ def original_colors(generated_img,content_img,use_gpu):
     orig_color_img = torch.from_numpy(g_rgb).permute(2,0,1).unsqueeze(0)
 
     return orig_color_img
+    
+# Print iterations progress
+def progress_bar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
