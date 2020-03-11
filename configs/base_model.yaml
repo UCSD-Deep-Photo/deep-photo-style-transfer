@@ -4,13 +4,13 @@ learning_rate: 0.2
 early_stop: 5
 
 # Model
-model: 'vgg19'
+model: 'vgg19_shifted'
 
 # How much to weight the content reconstruction term. 
 alpha: 10
 
 # How much to weight the style reconstruction term. 
-beta: 500000
+beta: 5000000
 
 gamma: 0.00001
 
