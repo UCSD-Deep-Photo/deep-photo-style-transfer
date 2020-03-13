@@ -90,12 +90,12 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
         train_loss += loss.item()
         counter += 1
 
-        if (epoch % 10) == 0:
+        if (epoch % 200) == 0:
             logging.info('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
             print('Epoch: {}, Loss: {}, Time: {}'.format(epoch,loss.item(), ts))
             losses.append(loss.item())
             
-        if (epoch == 3000):
+        if (epoch == 3000) or (epoch == 5000):
             padded_epoch = '{0:04}'.format(epoch)
             
             if orig_colors:
