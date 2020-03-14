@@ -87,24 +87,19 @@ def convert_tensor_to_image(t):
     tmp = np.squeeze(tmp) # get rid of last dimension added for Tensor
     return tmp
 
-def convert_image_to_tensor(img):
-    tmp = np.transpose(img, (2, 0, 1))
-    return torch.Tensor(tmp).unsqueeze(0)
+# def convert_image_to_tensor(img):
+#     tmp = np.transpose(img, (2, 0, 1))
+#     return torch.Tensor(tmp).unsqueeze(0)
 
 def get_laplacian_grad_loss(img_as_tensor, laplacian):
     original_shape = img_as_tensor.shape # save for later
-    print(1)
+    
     tmp = convert_tensor_to_image(img_as_tensor)
-    print(2)
     tmp = np.clip(tmp, 0, 1) # laplacian requires values to be [0, 1]
-    print(3)
-    print(laplacian.shape, tmp.shape)
-    gradient = np.dot(laplacian, tmp.reshape(-1, 3))
-    print(4)
+    
+    gradient = laplacian @ tmp.reshape(-1, 3)
     loss = (gradient * tmp.reshape(-1, 3)).sum() # matrix sum
-    print(5)
     gradient = 2 * gradient.reshape(original_shape) 
-    print(6)
-    gradient_as_tensor = convert_image_to_tensor(gradient).cuda()
-    print(7)
-    return loss, gradient
+    
+    # gradient_as_tensor = convert_image_to_tensor(gradient)
+    return loss, torch.Tensor(gradient)

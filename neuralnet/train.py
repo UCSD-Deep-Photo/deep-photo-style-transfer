@@ -86,9 +86,17 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
 
         if matting:
             matting_loss, matting_gradient = get_laplacian_grad_loss(generated_img, laplacian)
-            loss += matting_laplacian_weight * matting_loss
-            generated_img.grad += matting_laplacian_weight * matting_gradient
 
+            if use_gpu:
+                matting_gradient_cuda = matting_gradient.cuda()
+                generated_img.grad += matting_laplacian_weight * matting_gradient_cuda
+                del matting_gradient_cuda
+            else:
+                generated_img.grad += matting_laplacian_weight * matting_gradient
+            del matting_gradient
+
+            loss += matting_laplacian_weight * matting_loss
+            
         optimizer.step(closure=(loss.item))
         train_loss += loss.item()
         counter += 1
