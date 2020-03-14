@@ -5,6 +5,8 @@ learning_rate: 0.2
 # Model
 model: 'vgg19'
 
+early_stop: 5
+
 # How much to weight the content reconstruction term. 
 alpha: 10
 
@@ -32,3 +34,4 @@ original_colors: False
 
 # Specify whether to use Matting Laplacian
 matting: True
+matting_laplacian_weight: 1000 # 0.0001

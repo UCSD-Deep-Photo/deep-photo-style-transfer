@@ -4,6 +4,7 @@ import torch
 import logging
 import torch.optim as optim
 from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize, plot_losses, original_colors, convert_tensor_to_image, get_laplacian_grad_loss
+import neuralnet.closed_form_matting as cfm
 import numpy as np
 import torch.nn as nn
 from neuralnet.models import TVLoss
@@ -40,10 +41,9 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     logging.info('Generating Image.')
     tv = TVLoss()
 
-    laplacian = None # defensive
-    if self.matting:
-        tmp = convert_tensor_to_image(self.content_img)
-        tmp = np.clip(img, 0, 1) # laplacian requires values to be [0, 1]
+    if matting:
+        tmp = convert_tensor_to_image(content_img)
+        tmp = np.clip(tmp, 0, 1) # laplacian requires values to be [0, 1]
         laplacian = cfm.compute_laplacian(tmp)
         del tmp
 
@@ -84,7 +84,7 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
         loss = (alpha * c_loss) + (beta * s_loss) + (gamma * tv_loss)
         loss.backward()
 
-        if matting and laplacian:
+        if matting:
             matting_loss, matting_gradient = get_laplacian_grad_loss(generated_img, laplacian)
             loss += matting_laplacian_weight * matting_loss
             generated_img.grad += matting_laplacian_weight * matting_gradient
