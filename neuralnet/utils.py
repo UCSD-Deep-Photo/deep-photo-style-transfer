@@ -13,8 +13,6 @@ import numpy as np
 import matplotlib.animation as animation
 from IPython.display import HTML
 
-import scipy.sparse
-
 def checkGPU():
     logging.info("GPU Usage - cached:{}/{} GB, allocated:{}/{} GB".format(round(torch.cuda.memory_cached()/1024/1024/1024,5), 
                 round(torch.cuda.max_memory_cached()/1024/1024/1024,5), 
@@ -65,35 +63,6 @@ def plot_losses(losses, save_file, title='Loss over Epochs'):
     ax.set(xlabel='epoch', ylabel='loss', title=title)
     fig.savefig('out/' + save_file + '.png')
 
-def calculate_laplacian(img, epsilon=1e-7, radius=1, filter_size=3):
-    """
-    Calculates the matting laplacian for an image
-    """
-    diameter = radius * 2 + 1
-    full_size = np.power(diameter, 2)
-
-    x, y, z = img.shape
-    raveled = img.reshape(x * y, z)
-    tmp = np.arange(x*y).reshape((x, y))
-
-    shape = (x - diameter + 1, y - diameter + 1, diameter, diameter)
-    strides = img.strides + img.strides # concat tuples
-    slid = (np.lib.stride_tricks.as_strided(tmp, shape=shape, strides=strides)).reshape(-1, full_size)
-
-    I = raveled[slid]
-    mean = np.mean(I, axis=1, keepdims=True)
-    var = (1.0 / full_size) * np.einsum("...ji,...jk ->...ik", I, I) - np.einsum("...ji,...jk ->...ik", mean, mean) # I and mean are changed in place
-    inv = np.linalg.inv(var + (epsilon / full_size) * np.eye(filter_size))
-    X = np.einsum("...ij,...jk->...ik", I - mean, inv)
-
-    a = np.einsum("...ij,...kj->...ik", X, I - mean)
-    tmp2 = np.eye(full_size) - (1 / full_size) * (1 + a)
-    rows = np.repeat(slid, full_size).ravel()
-    cols = np.tile(slid, full_size).ravel()
-
-    return scipy.sparse.coo_matrix((tmp2.ravel(), (rows.ravel(), cols.ravel())), shape=(x*y, x*y))
-
-
 def original_colors(generated_img,content_img,use_gpu):
     '''Replaces generate image colors with original content image colors'''
     # From RGB to YUV color space
@@ -111,3 +80,26 @@ def original_colors(generated_img,content_img,use_gpu):
     orig_color_img = torch.from_numpy(g_rgb).permute(2,0,1).unsqueeze(0)
 
     return orig_color_img
+
+def convert_tensor_to_image(t):
+    tmp = t.cpu().detach().numpy() # don't mess with the original, convert tensor to numpy array
+    tmp = np.transpose(tmp, (0, 2, 3, 1)) # change structure
+    tmp = np.squeeze(tmp) # get rid of last dimension added for Tensor
+    return tmp
+
+# def convert_image_to_tensor(img):
+#     tmp = np.transpose(img, (2, 0, 1))
+#     return torch.Tensor(tmp).unsqueeze(0)
+
+def get_laplacian_grad_loss(img_as_tensor, laplacian):
+    original_shape = img_as_tensor.shape # save for later
+    
+    tmp = convert_tensor_to_image(img_as_tensor)
+    tmp = np.clip(tmp, 0, 1) # laplacian requires values to be [0, 1]
+    
+    gradient = laplacian @ tmp.reshape(-1, 3)
+    loss = (gradient * tmp.reshape(-1, 3)).sum() # matrix sum
+    gradient = 2 * gradient.reshape(original_shape) 
+    
+    # gradient_as_tensor = convert_image_to_tensor(gradient)
+    return loss, torch.Tensor(gradient)

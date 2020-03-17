@@ -1,0 +1,37 @@
+# Hyperparameters
+train_epoch: 2000
+learning_rate: 0.2
+
+# Model
+model: 'vgg19'
+
+early_stop: 5
+
+# How much to weight the content reconstruction term. 
+alpha: 10
+
+# How much to weight the style reconstruction term. 
+beta: 500000
+
+gamma: 0.00001
+
+# Images to blend:
+content_image: './data/landscapes/landscape1.jpg'
+style_image: './data/art/art1.jpg'
+
+# Use segmentaion mask (read README.md for instructions)
+use_mask: False
+
+# Use LBFGS optimizer instead of Adam (LBFGS takes more time and memory but produces sharper images)
+lbfgs : False
+
+# Generate Image: 
+# true = start with generated pink noise || false = start with content image (use this for faster results)
+generate_image: False
+
+# Show original content image colors on top of generated image
+original_colors: False
+
+# Specify whether to use Matting Laplacian
+matting: True
+matting_laplacian_weight: 1000 # 0.0001

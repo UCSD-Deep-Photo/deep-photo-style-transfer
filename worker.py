@@ -60,10 +60,14 @@ def main():
     style_img, style_mask       = load_image(config['style_image'], use_mask)
     generated_img = generate_image(content_img, config['generate_image'])
     
+    matting = False
+    matting_laplacian_weight = None
+    if 'matting' in config and config['matting']:
+        matting = True
+        matting_laplacian_weight = config['matting_laplacian_weight']
 
     # Load Model
     model = model_loader(config, content_mask, style_mask)
-
 
     # Use GPU, if available
     use_gpu = torch.cuda.is_available()
@@ -88,7 +92,9 @@ def main():
         early_stop=config['early_stop'],
         timestamp=config['timestamp'],
         orig_colors=config['original_colors'],
-        LBFGS=config['lbfgs']
+        LBFGS=config['lbfgs'],
+        matting=matting,
+        matting_laplacian_weight=matting_laplacian_weight
     )
     
     logging.info("Worker completed!")

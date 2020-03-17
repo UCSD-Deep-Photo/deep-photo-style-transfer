@@ -3,12 +3,13 @@ import time
 import torch
 import logging
 import torch.optim as optim
-from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize, plot_losses, original_colors
+from neuralnet.utils import showImage, checkGPU, animate_progress, unNormalize, plot_losses, original_colors, convert_tensor_to_image, get_laplacian_grad_loss
+import neuralnet.closed_form_matting as cfm
 import numpy as np
 import torch.nn as nn
 from neuralnet.models import TVLoss
 
-def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  gamma=0, lr=0.05, epochs=100,early_stop=5,timestamp='',orig_colors=False, LBFGS=False):
+def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta=0.01,  gamma=0, lr=0.05, epochs=100,early_stop=5,timestamp='',orig_colors=False, LBFGS=False, matting=False, matting_laplacian_weight=None):
     use_gpu      = next(model.parameters()).is_cuda
     result       = []
     train_loss   = 0.0
@@ -40,13 +41,17 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
     logging.info('Generating Image.')
     tv = TVLoss()
 
+    if matting:
+        tmp = convert_tensor_to_image(content_img)
+        tmp = np.clip(tmp, 0, 1) # laplacian requires values to be [0, 1]
+        laplacian = cfm.compute_laplacian(tmp)
+        del tmp
+
     # Toggle LBFGS and Adam optimizers
     if LBFGS == True:
         optimizer = optim.LBFGS([generated_img.requires_grad_(True)])
     else :
         optimizer = optim.Adam([generated_img.requires_grad_(True)], lr=lr)
-    
-
     
     for epoch in range(1,epochs+1):
         ts = time.time()
@@ -78,6 +83,20 @@ def train(model, content_img, style_img, generated_img, save_file, alpha=5, beta
         s_loss, c_loss = model(generated_img, img_type='generated')
         loss = (alpha * c_loss) + (beta * s_loss) + (gamma * tv_loss)
         loss.backward()
+
+        if matting:
+            matting_loss, matting_gradient = get_laplacian_grad_loss(generated_img, laplacian)
+
+            if use_gpu:
+                matting_gradient_cuda = matting_gradient.cuda()
+                generated_img.grad += matting_laplacian_weight * matting_gradient_cuda
+                del matting_gradient_cuda
+            else:
+                generated_img.grad += matting_laplacian_weight * matting_gradient
+            del matting_gradient
+
+            loss += matting_laplacian_weight * matting_loss
+            
         optimizer.step(closure=(loss.item))
         train_loss += loss.item()
         counter += 1
